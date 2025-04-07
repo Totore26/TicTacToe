@@ -6,6 +6,7 @@
 #include <arpa/inet.h>
 
 #include "strutture.h"
+#include "../Comunicazione.h"
 
 Lobby lobby;
 
@@ -65,7 +66,7 @@ void *threadLobby(void *arg) {
 
     
     // Messaggio di benvenuto
-    sprintf(buffer, "BENVENUTO\n");
+    sprintf(buffer, MSG_SERVER_MENU);
     if ( send(giocatore->socket, buffer, strlen(buffer), 0) < 0 ) {
         perror("[Lobby] Errore nell'invio del messaggio di benvenuto\n");
         close(giocatore->socket);
@@ -75,8 +76,9 @@ void *threadLobby(void *arg) {
 
     // Ciclo del menu della lobby
     while (1) {
+
         // invio il messaggio di scelta
-        sprintf(buffer, "SCELTA");
+        sprintf(buffer, MSG_CHOISE);
         if ( send(giocatore->socket, buffer, strlen(buffer), 0) < 0 ) {
             perror("[Lobby] Errore nell'invio del messaggio di scelta\n");
             break;
@@ -90,49 +92,25 @@ void *threadLobby(void *arg) {
         }
 
         // Controllo la scelta del giocatore
+        if ( strcmp( buffer, MSG_CLIENT_CREAATE ) == 0 ) { // il giocatore ha scelto di creare una partita 
+            
 
-        if (strcmp(buffer, "crea") == 0) {
-            // Crea una nuova partita
-            pthread_mutex_lock(&lobby.lobbyMutex);
-            int partitaIndex = lobby.numeroPartita++;
-            lobby.partita[partitaIndex].giocatoreAdmin = *giocatore;
-            lobby.partita[partitaIndex].statoPartita = PARTITA_NUOVA_CREAZIONE;
-            pthread_mutex_unlock(&lobby.lobbyMutex);
 
-            sprintf(buffer, "Partita creata con successo! In attesa di un secondo giocatore...\n");
-            send(giocatore->socket, buffer, strlen(buffer), 0);
+        } else if ( strcmp( buffer, MSG_CLIENT_JOIN ) == 0 ) { // il giocatore ha scelto di unirsi a una partita
 
-            // Aspetta un secondo giocatore
-            while (lobby.partita[partitaIndex].statoPartita == PARTITA_NUOVA_CREAZIONE) {
-                sleep(1);
-            }
 
-            // Avvia la partita
-            pthread_t thread;
-            if (pthread_create(&thread, NULL, threadPartita, (void *)&lobby.partita[partitaIndex]) != 0) {
-                perror("[Lobby] Errore nella creazione del thread per la partita\n");
-                break;
-            }
-            pthread_detach(thread);
-        } else if (strcmp(buffer, "unisciti") == 0) {
-            // Unisciti a una partita esistente
-            pthread_mutex_lock(&lobby.lobbyMutex);
-            for (int i = 0; i < lobby.numeroPartita; i++) {
-                if (lobby.partita[i].statoPartita == PARTITA_NUOVA_CREAZIONE) {
-                    lobby.partita[i].giocatoreGuest = *giocatore;
-                    lobby.partita[i].statoPartita = PARTITA_IN_CORSO;
-                    pthread_mutex_unlock(&lobby.lobbyMutex);
 
-                    sprintf(buffer, "Sei entrato nella partita!\n");
-                    send(giocatore->socket, buffer, strlen(buffer), 0);
-                    break;
-                }
-
-            }
+        } else if ( strcmp( buffer, MSG_CLIENT_QUIT ) == 0 ) { // il giocatore ha scelto di uscire dalla lobby e quindi dal server
+            break;
+        } else {
+            sprintf(buffer, "[Lobby] Errore, scelta del giocatore non gestita.\n");
+            continue;
         }
+
+
     }
-    // Chiudi la connessione se necessario
-    // close(giocatore->socket);
+    // Chiudi la connessione e libera la memoria
+    close(giocatore->socket);
     free(giocatore);
     pthread_exit(NULL);
 }

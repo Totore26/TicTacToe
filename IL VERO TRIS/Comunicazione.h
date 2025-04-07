@@ -16,102 +16,48 @@
 
 // ========== MESSAGGI INVIATI DAL CLIENT ==========
 
+#define MSG_CLIENT_MOVE             "MOVE"  // seguito da due interi per la mossa
 
-/*
- * C -> S : "MOVE r c\n"
- * Il client invia una mossa alle coordinate (riga, colonna), 0-based.
- */
-#define MSG_CLIENT_MOVE         "MOVE"  // seguito da due interi
+#define MSG_CLIENT_QUIT             "QUIT" // quando il client abbandona la partita dalla lobby
 
-/*
- * C -> S : "QUIT\n"
- * Il client abbandona la partita.
- */
-#define MSG_CLIENT_QUIT         "QUIT"
+#define MSG_CLIENT_JOIN             "JOIN" // il client si unisce a una partita esistente
 
-/*
- * C -> S : "JOIN\n"
- * Il client si unisce alla partita.
- */
-#define MSG_CLIENT_JOIN         "JOIN"
+#define MSG_CLIENT_CREAATE          "CREATE" // il client crea una nuova partita
 
-/*
- * C -> S : "CREATE\n"
- * richiesta di creazione partita
- */
-#define MSG_CLIENT_CREAATE         "CREATE"
-
-
+#define MSG_SERVER_START            "START" // entrambi i giocatori sono pronti, inizia la partita
 
 // ========== MESSAGGI INVIATI DAL SERVER ==========
 
-#define MSG_SERVER_MENU      "MENU"  // seguito da X o O
+#define MSG_SERVER_MENU             "MENU"  // per stampare il menu di benvenuto
 
-/*
- * S -> C : "WELCOME X\n" oppure "WELCOME O\n"
- * Il server assegna al client il simbolo di gioco.
- */
-#define MSG_SERVER_WELCOME      "WELCOME"  // seguito da X o O
+#define MSG_SERVER_WELCOME          "WELCOME"  // seguito da X o O per il messaggio all entrata in game
 
-/*
- * S -> C : "START\n"
- * Entrambi i client sono connessi, la partita può iniziare.
- */
-#define MSG_SERVER_START        "START"
+#define MSG_SERVER_YOUR_TURN        "YOUR_TURN" // per segnalare che è il turno del giocatore
 
-//Messaggio partita piena oppure partita non esistente
-#define MSG_SERVER_PARTITA_PIENA "PARTITA_PIENA"
-#define MSG_SERVER_PARTITA_NON_ESISTENTE "PARTITA_NON_ESISTENTE"
+#define MSG_SERVER_OPPONENT_TURN    "OPPONENT_TURN" // per segnalare che è il turno dell avversario
 
+#define MSG_CHOISE                  "CHOISE" // per segnalare che il giocatore può scegliere tra crea o unisciti
 
+#define MSG_SERVER_BOARD            "BOARD"  // seguito da 9 caratteri
 
-/*
- * S -> C : "YOUR_TURN\n"
- * Il server indica che è il turno del client.
- */
-#define MSG_SERVER_YOUR_TURN    "YOUR_TURN"
+#define MSG_SERVER_WIN              "WIN"
 
-/*
- * S -> C : "OPPONENT_TURN\n"
- * È il turno dell’altro giocatore.
- */
-#define MSG_SERVER_OPPONENT_TURN "OPPONENT_TURN"
+#define MSG_SERVER_LOSE             "LOSE"
 
-/*
- * S -> C : "BOARD <stringa>\n"
- * Invia lo stato attuale della griglia. 9 caratteri: X, O, o -
- * Esempio: BOARD XOX-O-X--
- */
-#define MSG_SERVER_BOARD        "BOARD"  // seguito da 9 caratteri
+#define MSG_SERVER_DRAW             "DRAW"
 
-/*
- * S -> C : "INVALID_MOVE\n"
- * La mossa inviata era illegale (es. cella già occupata).
- */
-#define MSG_SERVER_INVALID_MOVE "INVALID_MOVE"
-
-/*
- * S -> C : "WIN\n"
- * Il client ha vinto.
- */
-#define MSG_SERVER_WIN          "WIN"
-
-/*
- * S -> C : "LOSE\n"
- * Il client ha perso.
- */
-#define MSG_SERVER_LOSE         "LOSE"
-
-/*
- * S -> C : "DRAW\n"
- * La partita è terminata in pareggio.
- */
-#define MSG_SERVER_DRAW         "DRAW"
-
-/*
- * S -> C : "OPPONENT_LEFT\n"
- * L’avversario si è disconnesso o ha abbandonato.
- */
-#define MSG_SERVER_OPPONENT_LEFT "OPPONENT_LEFT"
+#define MSG_SERVER_OPPONENT_LEFT    "OPPONENT_LEFT"
 
 #endif // PROTOCOLLO_H
+
+
+/* 
+menu: 
+1. Crea partita
+2. Unisciti a partita
+3. Esci
+
+
+
+
+*/
