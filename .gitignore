@@ -50,3 +50,99 @@ modules.order
 Module.symvers
 Mkfile.old
 dkms.conf
+
+
+
+
+# === C/C++ build files ===
+*.o
+*.obj
+*.lo
+*.dll
+*.so
+*.so.*
+*.dylib
+*.exe
+*.out
+*.a
+*.lib
+*.exp
+*.pdb
+*.idb
+
+# === Precompiled Headers ===
+*.gch
+*.pch
+
+# === Compilation logs / dependency files ===
+*.log
+*.d
+
+# === Editor/IDE-specific ===
+
+# Visual Studio Code
+.vscode/
+*.code-workspace
+
+# CLion / JetBrains
+.idea/
+cmake-build-*/
+
+# Eclipse
+.cproject
+.project
+.settings/
+
+# Makefile auto-generated
+Makefile
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+build/
+build-*/
+
+# Vim
+*~
+*.swp
+*.swo
+
+# Emacs
+*#
+.#*
+
+# Xcode
+*.xcworkspace/
+*.xcodeproj/
+*.xcuserdata/
+*.xcuserstate
+
+# Windows system files
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# macOS system files
+.DS_Store
+
+# GDB/LLDB
+.gdb_history
+.lldb_history
+
+# Valgrind
+vgcore.*
+
+# Tags / ctags
+tags
+TAGS
+
+# Backup files
+*.bak
+*.tmp
+*.old
+
+# Logs
+*.log
+
+# Core dumps
+core
+core.*
