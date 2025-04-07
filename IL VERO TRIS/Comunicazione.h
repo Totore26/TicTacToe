@@ -26,13 +26,20 @@
 
 #define MSG_SERVER_START            "START" // entrambi i giocatori sono pronti, inizia la partita
 
+
 // ========== MESSAGGI INVIATI DAL SERVER ==========
 
 #define MSG_SERVER_MENU             "MENU"  // per stampare il menu di benvenuto
 
 #define MSG_SERVER_WELCOME          "WELCOME"  // seguito da X o O per il messaggio all entrata in game
 
-#define MSG_SERVER_YOUR_TURN        "YOUR_TURN" // per segnalare che è il turno del giocatore
+#define MSG_WAITING_PLAYER          "WAITING_PLAYER" // per segnalare che la partita è in attesa di un avversario
+
+#define MSG_NO_GAME                 "NO_GAME" // per segnalare che non ci sono partite disponibili
+
+#define MSG_JOIN_ERROR              "JOIN_ERROR" // errore durante l'unione a una partita
+
+#define MSG_YOUR_TURN               "YOUR_TURN" // per segnalare che è il turno del giocatore
 
 #define MSG_SERVER_OPPONENT_TURN    "OPPONENT_TURN" // per segnalare che è il turno dell avversario
 

@@ -13,6 +13,7 @@
 #define PARTITA_IN_ATTESA           2       // quando si sceglie di partecipare a una partita
 #define PARTITA_NUOVA_CREAZIONE     3       // quando si crea una partita
 
+
 // ALTRO
 #define CLEAR_SCREEN()  printf("\033[H\033[J")
 
@@ -33,6 +34,7 @@ typedef struct {
 typedef struct {
     Giocatore giocatoreAdmin;
     Giocatore giocatoreGuest;   
+    pthread_mutex_t partitaMutex;
     char Griglia[3][3];
     int turnoCorrente;                  // indice 0 o 1
     int statoPartita;                   // in corso, terminata, in attesa, nuova creazione
