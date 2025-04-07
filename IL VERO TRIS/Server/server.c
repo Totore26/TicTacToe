@@ -5,46 +5,12 @@
 #include <pthread.h>
 #include <arpa/inet.h>
 
-#define PORT 8080
-#define SIZE 3  // Dimensione della griglia
-#define MAX_CLIENTS 10
+#include "strutture.h"
 
-typedef struct {
-    int player1;
-    int player2;
-} Game;
-
-// Griglia di gioco
-char board[SIZE][SIZE];
-
-// Inizializza la griglia
-void init_board() {
-    for (int i = 0; i < SIZE; i++)
-        for (int j = 0; j < SIZE; j++)
-            board[i][j] = ' ';
-}
-
-// Controlla se un giocatore ha vinto
-int check_winner(char mark) {
-    for (int i = 0; i < SIZE; i++) {
-        if (board[i][0] == mark && board[i][1] == mark && board[i][2] == mark) return 1;
-        if (board[0][i] == mark && board[1][i] == mark && board[2][i] == mark) return 1;
-    }
-    if (board[0][0] == mark && board[1][1] == mark && board[2][2] == mark) return 1;
-    if (board[0][2] == mark && board[1][1] == mark && board[2][0] == mark) return 1;
-    return 0;
-}
-
-// Controlla se è pareggio
-int is_draw() {
-    for (int i = 0; i < SIZE; i++)
-        for (int j = 0; j < SIZE; j++)
-            if (board[i][j] == ' ') return 0;
-    return 1;
-}
+Lobby lobby;
 
 // Thread per gestire una partita
-void *game_thread(void *arg) {
+void *threadPartita(void *arg) {
     Game *game = (Game *)arg;
     int players[2] = {game->player1, game->player2};
     char symbols[2] = {'X', 'O'};
@@ -91,8 +57,88 @@ void *game_thread(void *arg) {
     pthread_exit(NULL);
 }
 
+// Thread per gestire la lobby
+void *threadLobby(void *arg) {
+    Giocatore *giocatore = (Giocatore *)arg; //estraggo i dati
+    char buffer[BUFFER_SIZE]; 
+    memset(buffer, 0, sizeof(buffer));
+
+    
+    // Messaggio di benvenuto
+    sprintf(buffer, "BENVENUTO\n");
+    if ( send(giocatore->socket, buffer, strlen(buffer), 0) < 0 ) {
+        perror("[Lobby] Errore nell'invio del messaggio di benvenuto\n");
+        close(giocatore->socket);
+        free(giocatore);
+        pthread_exit(NULL);
+    }
+
+    // Ciclo del menu della lobby
+    while (1) {
+        // invio il messaggio di scelta
+        sprintf(buffer, "SCELTA");
+        if ( send(giocatore->socket, buffer, strlen(buffer), 0) < 0 ) {
+            perror("[Lobby] Errore nell'invio del messaggio di scelta\n");
+            break;
+        }
+        
+        // Ricevo la scelta del giocatore
+        memset(buffer, 0, sizeof(buffer));
+        if ( recv(giocatore->socket, buffer, sizeof(buffer), 0) <= 0 ) {
+            perror("[Lobby] Errore nella ricezione della scelta del giocatore\n");
+            break;
+        }
+
+        // Controllo la scelta del giocatore
+
+        if (strcmp(buffer, "crea") == 0) {
+            // Crea una nuova partita
+            pthread_mutex_lock(&lobby.lobbyMutex);
+            int partitaIndex = lobby.numeroPartita++;
+            lobby.partita[partitaIndex].giocatoreAdmin = *giocatore;
+            lobby.partita[partitaIndex].statoPartita = PARTITA_NUOVA_CREAZIONE;
+            pthread_mutex_unlock(&lobby.lobbyMutex);
+
+            sprintf(buffer, "Partita creata con successo! In attesa di un secondo giocatore...\n");
+            send(giocatore->socket, buffer, strlen(buffer), 0);
+
+            // Aspetta un secondo giocatore
+            while (lobby.partita[partitaIndex].statoPartita == PARTITA_NUOVA_CREAZIONE) {
+                sleep(1);
+            }
+
+            // Avvia la partita
+            pthread_t thread;
+            if (pthread_create(&thread, NULL, threadPartita, (void *)&lobby.partita[partitaIndex]) != 0) {
+                perror("[Lobby] Errore nella creazione del thread per la partita\n");
+                break;
+            }
+            pthread_detach(thread);
+        } else if (strcmp(buffer, "unisciti") == 0) {
+            // Unisciti a una partita esistente
+            pthread_mutex_lock(&lobby.lobbyMutex);
+            for (int i = 0; i < lobby.numeroPartita; i++) {
+                if (lobby.partita[i].statoPartita == PARTITA_NUOVA_CREAZIONE) {
+                    lobby.partita[i].giocatoreGuest = *giocatore;
+                    lobby.partita[i].statoPartita = PARTITA_IN_CORSO;
+                    pthread_mutex_unlock(&lobby.lobbyMutex);
+
+                    sprintf(buffer, "Sei entrato nella partita!\n");
+                    send(giocatore->socket, buffer, strlen(buffer), 0);
+                    break;
+                }
+
+            }
+        }
+    }
+    // Chiudi la connessione se necessario
+    // close(giocatore->socket);
+    free(giocatore);
+    pthread_exit(NULL);
+}
+
 int main() {
-    int server_fd, new_socket;
+    int server_fd;
     struct sockaddr_in address;
     socklen_t addrlen = sizeof(address);
 
@@ -101,25 +147,47 @@ int main() {
     address.sin_addr.s_addr = INADDR_ANY;
     address.sin_port = htons(PORT);
     
-    bind(server_fd, (struct sockaddr *)&address, sizeof(address));
-    listen(server_fd, MAX_CLIENTS);
+    if ( bind(server_fd, (struct sockaddr *)&address, sizeof(address)) < 0 ) {
+        perror("\n\nbind fallita\n\n");
+        exit(-1);
+    }
+    if ( listen(server_fd, MAX_CLIENTS) < 0 ) {
+        perror("\n\nlisten fallita\n\n");
+        exit(-1);
+    }
+    printf("Server in ascolto sulla porta %d...\n", PORT);
 
-    printf("Server in attesa di giocatori...\n");
-
+    //CICLO DI ACCETTAZIONE DELLE CONNESSIONI
     while (1) {
-        int player1 = accept(server_fd, (struct sockaddr *)&address, &addrlen);
-        printf("Giocatore 1 connesso.\n");
+        int nuovaSocket = accept(server_fd, (struct sockaddr *)&address, &addrlen);
+        if (nuovaSocket < 0) {
+            perror("Errore nell'accept\n");
+            continue;
+        }
+        printf("Un nuovo giocatore è connesso al server.\n");
 
-        int player2 = accept(server_fd, (struct sockaddr *)&address, &addrlen);
-        printf("Giocatore 2 connesso. Avvio partita...\n");
-
-        Game *game = malloc(sizeof(Game));
-        game->player1 = player1;
-        game->player2 = player2;
-
+        Giocatore *giocatore = malloc(sizeof(Giocatore)); //alloco il nuovo giocatore
+        if (giocatore == NULL) {
+            perror("Errore nell'allocazione della memoria\n");
+            close(nuovaSocket);
+            continue;
+        }
+        giocatore->socket = nuovaSocket; //salvo la socket del giocatore        
+        
+        //mando il giocatore nella lobby
         pthread_t thread;
-        pthread_create(&thread, NULL, game_thread, (void *)game);
-        pthread_detach(thread);
+        if (pthread_create(&thread, NULL, threadLobby, (void *)giocatore) != 0) {
+            perror("Errore nella creazione del thread\n");
+            free(giocatore);
+            close(nuovaSocket);
+            continue;
+        }
+        if ( pthread_detach(thread) != 0 ) {
+            perror("Errore nel detach del thread\n");
+            free(giocatore);
+            close(nuovaSocket);
+            continue;
+        }
     }
 
     close(server_fd);
