@@ -36,14 +36,16 @@
 #define MSG_CLIENT_JOIN         "JOIN"
 
 /*
- * C -> S : "QUIT\n"
+ * C -> S : "CREATE\n"
  * richiesta di creazione partita
  */
-#define MSG_CLIENT_QUIT         "CREATE"
+#define MSG_CLIENT_CREAATE         "CREATE"
 
 
 
 // ========== MESSAGGI INVIATI DAL SERVER ==========
+
+#define MSG_SERVER_MENU      "MENU"  // seguito da X o O
 
 /*
  * S -> C : "WELCOME X\n" oppure "WELCOME O\n"
@@ -56,6 +58,12 @@
  * Entrambi i client sono connessi, la partita può iniziare.
  */
 #define MSG_SERVER_START        "START"
+
+//Messaggio partita piena oppure partita non esistente
+#define MSG_SERVER_PARTITA_PIENA "PARTITA_PIENA"
+#define MSG_SERVER_PARTITA_NON_ESISTENTE "PARTITA_NON_ESISTENTE"
+
+
 
 /*
  * S -> C : "YOUR_TURN\n"
