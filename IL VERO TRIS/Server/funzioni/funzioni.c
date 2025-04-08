@@ -1,6 +1,7 @@
 #include "../strutture.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include "../../Comunicazione.h"
 
 extern Lobby lobby;
 
@@ -20,6 +21,7 @@ int emptyLobby() {
     return 1; // La lobby è vuota
 }
 
+// genera stringhe del tipo "0 1 2 3\0"
 char *generaStringaPartiteDisponibili() {
     char *partiteDisponibili = malloc(BUFFER_SIZE);
     if (partiteDisponibili == NULL) {
@@ -27,21 +29,46 @@ char *generaStringaPartiteDisponibili() {
         return NULL;
     }
     int index = 0;
+    index += snprintf(partiteDisponibili + index, BUFFER_SIZE - index, "Partite disponibili:\n ");
 
     pthread_mutex_lock(&lobby.lobbyMutex);
     for (int i = 0; i < MAX_GAMES; i++) 
         if (lobby.partita[i].statoPartita == PARTITA_IN_ATTESA)
-            index += snprintf(partiteDisponibili + index, "%d ", i); //uso snprintf per evitare partiteDisponibili overflow
+            index += snprintf(partiteDisponibili + index, "%d\n", i); //uso snprintf per evitare partiteDisponibili overflow
     
     pthread_mutex_unlock(&lobby.lobbyMutex);
 
-    if (index > 0) 
-        partiteDisponibili[index - 1] = '\0'; // Rimuovo l'ultimo spazio
-    else 
-        partiteDisponibili[0] = '\0'; // setta a "" se non ci sono partite disponibili
+    if (index <= 0) 
+        return MSG_NO_GAME; // se non ci sono partite disponibili
 
     return partiteDisponibili;
 }
+
+
+// gestione del riutilizzo id partite
+int generazioneIdPartita(Lobby *lobby, const char *name, int host_socket) {
+    if (emptyLobby())
+        return 0;
+    
+    for (int i = 0; i < MAX_GAMES; i++) {
+        if (lobby->partita[i].statoPartita == PARTITA_TERMINATA) {
+            return i;
+        }
+    }
+    return -1; // nessun id disponibile (errore)
+}
+
+int MaxPartiteRaggiunte() {//torna 0 o 1
+    pthread_mutex_lock(&lobby.lobbyMutex);
+    for (int i = 0; i < MAX_GAMES; i++) {
+        if (lobby.partita[i].statoPartita != PARTITA_TERMINATA) {
+            
+        }
+    }
+    pthread_mutex_unlock(&lobby.lobbyMutex);
+    return 0; // non sono raggiunte le partite massime
+}
+
 
 // ==========================================================
 // FUNZIONI PER GESTIRE LA PARTITA

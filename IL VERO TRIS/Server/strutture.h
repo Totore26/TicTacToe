@@ -13,6 +13,7 @@
 #define PARTITA_IN_ATTESA           2       // quando si sceglie di partecipare a una partita
 #define PARTITA_NUOVA_CREAZIONE     3       // quando si crea una partita
 
+// la partita quanto termina rimane con stato in corso, passa allo stato terminata solo quando entrambi gli host hanno abbandonato
 
 // ALTRO
 #define CLEAR_SCREEN()  printf("\033[H\033[J")
@@ -47,7 +48,6 @@ typedef struct {
 typedef struct {
     Partita partita[MAX_GAMES];
     pthread_mutex_t lobbyMutex;
-    int numeroPartita;
 } Lobby;
 
 

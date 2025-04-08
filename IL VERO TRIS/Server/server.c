@@ -12,19 +12,11 @@
 Lobby lobby;
 
 
-//
-//
-//TODO: implementa una funzione che quando le partite sono terminate le chiude se sono orfane
-//
-//
-
-
 //dichiarazioni di funzioni
 void *threadLobby(void *arg);
 void *threadPartita(void *arg);
 
 int main() {
-    lobby.numeroPartita = 0;
     pthread_mutex_init(&lobby.lobbyMutex, NULL);
     int server_fd;
     struct sockaddr_in address;
@@ -83,7 +75,6 @@ int main() {
 }
 
 
-
 // Thread per gestire la lobby
 void *threadLobby(void *arg) {
     Giocatore *giocatore = (Giocatore *)arg; //estraggo i dati
@@ -120,7 +111,7 @@ void *threadLobby(void *arg) {
         if ( strcmp( buffer, MSG_CLIENT_CREAATE ) == 0 ) { 
 
             //controllo di non aver raggiunto il numero massimo di partite
-            if (lobby.numeroPartita >= MAX_GAMES) {
+            if (!MaxPartiteRaggiunte()) {
                 sprintf(buffer, "[Lobby] Errore, numero massimo di partite raggiunto.\n");
                 if ( send(giocatore->socket, buffer, strlen(buffer), 0) < 0 ) {
                     perror("[Lobby] Errore nell'invio del messaggio di errore\n");
@@ -141,9 +132,14 @@ void *threadLobby(void *arg) {
             pthread_mutex_init(&partita->partitaMutex, NULL);
             
             // aggiungo alla lobby la nuova partita
+            int nuovoId = generazioneIdPartita();
+            if (nuovoId == -1) {
+                perror("[Lobby] Errore nella generazione dell'id della partita\n");
+                free(partita);
+                break;
+            }
             pthread_mutex_lock(&lobby.lobbyMutex);
-            lobby.partita[lobby.numeroPartita] = *partita; 
-            lobby.numeroPartita++;
+            lobby.partita[nuovoId] = *partita; 
             pthread_mutex_unlock(&lobby.lobbyMutex);
 
             // invio il messaggio di attesa al giocatore admin
@@ -168,7 +164,7 @@ void *threadLobby(void *arg) {
                 }
             } else { // altrimenti invio la lista delle partite disponibili
 
-                char *partiteDisponibili = generaStringaPartiteDisponibili();
+                char *partiteDisponibili = generaStringaPartiteDisponibili(); 
                 if (partiteDisponibili == NULL) {
                     perror("[Lobby] Errore nella generazione della stringa delle partite disponibili\n");
                     break;
@@ -188,7 +184,6 @@ void *threadLobby(void *arg) {
                 break;
             }
 
-            //scelta la partita bisogna creare la partita
             int partitaScelta = atoi(buffer);
             if ( partitaScelta < 0 || partitaScelta >= MAX_GAMES ) {
                 perror("[Lobby] Errore, partita scelta non valida\n");
@@ -246,10 +241,16 @@ void *threadPartita(void *arg) {
     // ciclo di gioco
     while (1) {
         
-        // turno del giocatore corrente
+        // invio il messaggio del turno al giocatore corrente
         sprintf(buffer, MSG_YOUR_TURN);
         if ( send(giocatori[giocatoreCorrente].socket, buffer, strlen(buffer), 0) < 0 ) {
             perror("[Partita] Errore nell'invio del messaggio di turno\n");
+            break;
+        }
+        // invio all opponent il messaggio di attesa
+        sprintf(buffer, MSG_SERVER_OPPONENT_TURN);
+        if ( send(giocatori[1 - giocatoreCorrente].socket, buffer, strlen(buffer), 0) < 0 ) {
+            perror("[Partita] Errore nell'invio del messaggio di attesa all opponent\n");
             break;
         }
 
