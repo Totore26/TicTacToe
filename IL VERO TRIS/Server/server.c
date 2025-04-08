@@ -241,7 +241,7 @@ void *threadLobby(void *arg) {
 
 // Thread per gestire una partita
 void *threadPartita(void *arg) {
-  Partita *partita = (Partita *)arg;
+ /* Partita *partita = (Partita *)arg;
     Giocatore giocatori[2] = { partita->giocatoreAdmin, partita->giocatoreGuest };
     char buffer[1024];
     int giocatoreCorrente = 0;
@@ -312,6 +312,7 @@ void *threadPartita(void *arg) {
     close(giocatori[1].socket);
     free(partita);
     pthread_exit(NULL);
+    */
     
 }
 
