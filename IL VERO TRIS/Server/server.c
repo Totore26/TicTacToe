@@ -105,6 +105,7 @@ void *threadLobby(void *arg) {
 
             //controllo di non aver raggiunto il numero massimo di partite (se raggiunte torna 1)
             if (MaxPartiteRaggiunte()) {
+                perror("[Lobby] Errore, numero massimo di partite raggiunto, informo il client\n");
                 sprintf(buffer, MSG_SERVER_MAX_GAMES);
                 if ( send(giocatore->socket, buffer, strlen(buffer), 0) < 0 ) {
                     perror("[Lobby] Errore nell'invio del messaggio di errore\n");
@@ -143,10 +144,18 @@ void *threadLobby(void *arg) {
             }
 
             partita->statoPartita = PARTITA_IN_ATTESA;
-            //ora bisogna solo aspettare il secondo giocatore
 
-        // il giocatore ha scelto di unirsi a una partita
-        } else if ( strcmp( buffer, MSG_CLIENT_JOIN ) == 0 ) {
+            // quando un altro giocatore si unisce alla partita, il thread corrente deve attendere che termini 
+            while(partita->statoPartita != PARTITA_TERMINATA) {
+                sleep(1);
+            }
+
+            //a partita termianta vedo se il vincitore vuole giocare ancora (il vincitore sara l'admin, da modificare nel thread partita)
+
+            //se il giocatore vuole giocare ancora metto la partita in attesa altrimenti lo riporto al menu
+
+        
+        } else if ( strcmp( buffer, MSG_CLIENT_JOIN ) == 0 ) { // il giocatore ha scelto di unirsi a una partita
 
             // se non ci sono partite disponibili
             if (emptyLobby()) {
