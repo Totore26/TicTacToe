@@ -18,9 +18,11 @@ void *threadPartita(void *arg);
 
 int main() {
     pthread_mutex_init(&lobby.lobbyMutex, NULL);
+    inizializzaStatoPartite();
     int server_fd;
     struct sockaddr_in address;
     socklen_t addrlen = sizeof(address);
+     
 
     server_fd = socket(AF_INET, SOCK_STREAM, 0);
     address.sin_family = AF_INET;
@@ -101,7 +103,7 @@ void *threadLobby(void *arg) {
         // il giocatore ha scelto di creare una partita 
         if ( strcmp( buffer, MSG_CLIENT_CREAATE ) == 0 ) { 
 
-            //controllo di non aver raggiunto il numero massimo di partite
+            //controllo di non aver raggiunto il numero massimo di partite (se raggiunte torna 1)
             if (MaxPartiteRaggiunte()) {
                 sprintf(buffer, MSG_SERVER_MAX_GAMES);
                 if ( send(giocatore->socket, buffer, strlen(buffer), 0) < 0 ) {

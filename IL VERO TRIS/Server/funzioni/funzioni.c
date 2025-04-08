@@ -71,6 +71,13 @@ int MaxPartiteRaggiunte() {
     return 0;
 }
 
+void inizializzaStatoPartite() {
+    pthread_mutex_lock(&lobby.lobbyMutex);
+    for (int i = 0; i < MAX_GAMES; i++) 
+        lobby.partita[i].statoPartita = PARTITA_TERMINATA;
+    pthread_mutex_unlock(&lobby.lobbyMutex);
+}
+
 // ==========================================================
 // FUNZIONI PER GESTIRE LA PARTITA
 // ==========================================================
@@ -82,6 +89,22 @@ void inizializzazioneGriglia( Partita *partita) {
         }
     }
 }
+
+// devo implementare elaboraMossa(partita->Griglia); ??????????????????????????????????????????????
+
+void elaboraMossa(char *griglia, int mossa) {
+    int row = (mossa - 1) / SIZE;
+    int col = (mossa - 1) % SIZE;
+
+    if (griglia[row * SIZE + col] == ' ') {
+        griglia[row * SIZE + col] = 'X'; // o 'O' a seconda del giocatore
+    } else {
+        printf("Mossa non valida, riprova.\n");
+    }
+}
+
+
+
 int switchGiocatoreCorrente(int current) {
     return 1 - current; // alterna tra 0 e 1
 }
