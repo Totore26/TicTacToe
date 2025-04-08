@@ -98,17 +98,21 @@ void funzione_menu() {
         if (fgets(input, MAXSCRITTORE, stdin) == NULL) {  // Fixed buffer size
             continue;
         }
-        if (strstr(input, "1")) {
+        
+        // Rimuove il newline
+        input[strcspn(input, "\n")] = 0;
+        
+        if (strcmp(input, "1")==0) {
             // Invia richiesta di creazione partita
             send(sd, MSG_CLIENT_CREAATE, strlen(MSG_CLIENT_CREAATE), 0);
             funzione_crea_partita();
             break;
-        } else if (strstr(input, "2")) {
+        } else if (strcmp(input, "2")==0) {
             // Invia richiesta di unione a partita
             send(sd, MSG_CLIENT_JOIN, strlen(MSG_CLIENT_JOIN), 0);
             funzione_entra_partita();
             break;
-        } else if (strstr(input, "3")) {
+        } else if (strcmp(input, "3")==0) {
             // Invia richiesta di uscita
             send(sd, MSG_CLIENT_QUIT, strlen(MSG_CLIENT_QUIT), 0);
             close(sd);
@@ -189,14 +193,30 @@ void funzione_crea_partita(){
     }
 
 
+    printf("Ricevo buffer\n");
+    printf("%s\n\n", buffer);
+
+    if (strcmp(buffer, MSG_SERVER_MAX_GAMES)== 0) {
+        // Se il server ha restituito "MSG_SERVER_MAX_GAMES", significa che sono state raggiunte le partite massime
+        printf("Massimo numero di partite raggiunto. Torna al menu principale.\n");
+        return;
+    }
+    if (strcmp(buffer, MSG_WAITING_PLAYER) == 0) {
+        // Se il server ha restituito "MSG_WAITING_PLAYER", significa che la partita è in attesa di un avversario
+        // Mostra il messaggio ricevuto
+        printf("Aspettando un avversario...\n");
+
+
     while (1)
     {
         //Quando ricevo MSG_SERVER_START allora il client inizia la partita da proprietario della lobby
 
-        if (strstr(buffer, MSG_SERVER_START)){
+        if (strcmp(buffer, MSG_SERVER_START)==0){
+            //Adesso ripulisco lo standard input
             gioca_partita(PROPRIETARIO);
             return;
         }
+    }
     }
     
 
