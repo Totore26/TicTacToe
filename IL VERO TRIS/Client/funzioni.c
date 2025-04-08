@@ -135,8 +135,11 @@ void funzione_entra_partita(){
         printf("Connessione al server persa.\n");
         exit(EXIT_FAILURE);
     }
+    printf("Ricevo buffer\n");
+    printf("%s\n\n", buffer);
 
-    if (strstr(buffer, MSG_NO_GAME)) {
+
+    if (strcmp(buffer, MSG_NO_GAME)==0) {
         // Se il server ha restituito "MSG_NO_GAME", significa che non ci sono partite disponibili
         printf("Nessuna partita disponibile. Torna al menu principale.\n");
         return;
