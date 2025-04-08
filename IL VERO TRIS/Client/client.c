@@ -1,7 +1,7 @@
 #include "funzioni.h"
 #include "strutture.h"
 
-int sd = 0;  // Add proper type declaration
+int sd = 0;  // Socket del client
 
 int main() {
     inizializza_socket();
@@ -21,7 +21,7 @@ int main() {
         }
         
         // Controlla il messaggio ricevuto
-        if (strstr(buffer, MSG_SERVER_MENU)) {
+        if (strcmp(buffer, MSG_SERVER_MENU)==0) {
             funzione_menu();
         }
 
