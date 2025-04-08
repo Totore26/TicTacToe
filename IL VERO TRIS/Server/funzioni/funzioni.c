@@ -11,12 +11,12 @@ extern Lobby lobby;
 // ==========================================================
 
 int emptyLobby() {
+
     pthread_mutex_lock(&lobby.lobbyMutex);
-    for (int i = 0; i < MAX_GAMES; i++) {
-        if (lobby.partita[i].statoPartita == PARTITA_IN_ATTESA) {
+    for (int i = 0; i < MAX_GAMES; i++) 
+        if (lobby.partita[i].statoPartita == PARTITA_IN_ATTESA) 
             return 0; // La lobby non è vuota
-        }
-    }
+
     pthread_mutex_unlock(&lobby.lobbyMutex);
     return 1; // La lobby è vuota
 }
@@ -34,7 +34,7 @@ char *generaStringaPartiteDisponibili() {
     pthread_mutex_lock(&lobby.lobbyMutex);
     for (int i = 0; i < MAX_GAMES; i++) 
         if (lobby.partita[i].statoPartita == PARTITA_IN_ATTESA)
-            index += snprintf(partiteDisponibili + index, "%d\n", i); //uso snprintf per evitare partiteDisponibili overflow
+            index += snprintf(partiteDisponibili + index, "%d\n", i); //uso snprintf per evitare buffer overflow
     
     pthread_mutex_unlock(&lobby.lobbyMutex);
 
@@ -44,31 +44,31 @@ char *generaStringaPartiteDisponibili() {
     return partiteDisponibili;
 }
 
-
 // gestione del riutilizzo id partite
 int generazioneIdPartita(Lobby *lobby, const char *name, int host_socket) {
     if (emptyLobby())
         return 0;
     
-    for (int i = 0; i < MAX_GAMES; i++) {
-        if (lobby->partita[i].statoPartita == PARTITA_TERMINATA) {
+    for (int i = 0; i < MAX_GAMES; i++) 
+        if (lobby->partita[i].statoPartita == PARTITA_TERMINATA) 
             return i;
-        }
-    }
+
     return -1; // nessun id disponibile (errore)
 }
 
-int MaxPartiteRaggiunte() {//torna 0 o 1
-    pthread_mutex_lock(&lobby.lobbyMutex);
-    for (int i = 0; i < MAX_GAMES; i++) {
-        if (lobby.partita[i].statoPartita != PARTITA_TERMINATA) {
-            
-        }
-    }
-    pthread_mutex_unlock(&lobby.lobbyMutex);
-    return 0; // non sono raggiunte le partite massime
-}
+int MaxPartiteRaggiunte() {
+    int partiteAttive = 0;
 
+    pthread_mutex_lock(&lobby.lobbyMutex);
+    for (int i = 0; i < MAX_GAMES; i++) 
+        if (lobby.partita[i].statoPartita != PARTITA_TERMINATA) 
+            partiteAttive++;
+
+    pthread_mutex_unlock(&lobby.lobbyMutex);
+    if (partiteAttive >= MAX_GAMES)
+        return 1; 
+    return 0;
+}
 
 // ==========================================================
 // FUNZIONI PER GESTIRE LA PARTITA

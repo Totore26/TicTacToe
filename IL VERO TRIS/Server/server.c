@@ -156,7 +156,7 @@ void *threadLobby(void *arg) {
         } else if ( strcmp( buffer, MSG_CLIENT_JOIN ) == 0 ) {
 
             // se non ci sono partite disponibili
-            if (emptyLobby) {
+            if (emptyLobby()) {
                 sprintf(buffer, MSG_NO_GAME);
                 if ( send(giocatore->socket, buffer, strlen(buffer), 0) < 0 ) {
                     perror("[Lobby] Errore nell'invio del messaggio di partite non disponibili\n");
@@ -241,13 +241,13 @@ void *threadPartita(void *arg) {
     // ciclo di gioco
     while (1) {
         
-        // invio il messaggio del turno al giocatore corrente
+        // invio il messaggio del turno al giocatore corrente ( inizia sempre il proprietario cioe X )
         sprintf(buffer, MSG_YOUR_TURN);
         if ( send(giocatori[giocatoreCorrente].socket, buffer, strlen(buffer), 0) < 0 ) {
             perror("[Partita] Errore nell'invio del messaggio di turno\n");
             break;
         }
-        // invio all opponent il messaggio di attesa
+        // invio all opponent il messaggio di attesa ( giocatore guest, quindi O )
         sprintf(buffer, MSG_SERVER_OPPONENT_TURN);
         if ( send(giocatori[1 - giocatoreCorrente].socket, buffer, strlen(buffer), 0) < 0 ) {
             perror("[Partita] Errore nell'invio del messaggio di attesa all opponent\n");
@@ -261,7 +261,17 @@ void *threadPartita(void *arg) {
         }
 
         // ricevuta la mossa, aggiorno la griglia e la mando a entrambi i giocatori la griglia aggiornata
-        int row = buffer[0] - '0', col = buffer[1] - '0';
+        // la mossa è un intero da 1 a 9
+
+        elaboraMossa(partita->Griglia); // aggiorna la griglia nella partita
+        sprintf(buffer, GrigliaCorrente(partita->Griglia)); // metto la griglia aggiornata nel buffer
+
+        sprintf(buffer, MSG_SERVER_BOARD); // avviso il client che sta per arrivare la griglia aggiornata
+        if ( send(giocatori[0].socket, buffer, strlen(buffer), 0) < 0 ) {
+            perror("[Partita] Errore nell'invio del messaggio per ricevere la griglia 1\n");
+            break;
+        }
+        
 
         if (board[row][col] == ' ') {
             board[row][col] = symbols[current_player];
