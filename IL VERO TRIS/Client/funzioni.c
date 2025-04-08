@@ -4,7 +4,11 @@
 
 
 
-/*  FUNZIONI PER CONNESSIONE CON IL SERVER  */
+// ==========================================================
+//  FUNZIONI PER CONNESSIONE CON IL SERVER  
+// ==========================================================
+
+
 
 void inizializza_socket()
 {
@@ -41,26 +45,173 @@ void inizializza_socket()
 
 
 
-void gestisci_errore()
-{
-    if (errno == EAGAIN || errno == EWOULDBLOCK) printf("disconnesso per inattività\n");
-    else 
-    {   
-        printf("Si è verificato un errore\n");
-        close(sd);
+// ==========================================================
+//  FUNZIONI PER GESTIRE IL MENU 
+// ==========================================================
+
+
+
+// Funzione per ottenere la mossa del client
+int get_valid_match(char *input) {
+    while (1) {
+        printf("\nInserisci la tua mossa (0-9) [0-9]: ");
+        // Legge l'input dell'utente
+        // Se fgets restituisce NULL, significa che c'è stato un errore o EOF
+        // In tal caso, continua il ciclo per chiedere di nuovo l'input        
+        if (fgets(input, MAXSCRITTORE, stdin) == NULL) {
+            continue;
+        }
+
+        // Rimuove i caratteri di nuova linea (\n o \r\n) se presenti
+        input[strcspn(input, "\r\n")] = 0;
+
+
+        if (strcmp(input, "0") == 0 || strcmp(input, "1") == 0 || strcmp(input, "2") == 0 || strcmp(input, "3") == 0 || strcmp(input, "4") == 0 || strcmp(input, "5") == 0 || strcmp(input, "6") == 0 || strcmp(input, "7") == 0 || strcmp(input, "8") == 0 || strcmp(input, "9") == 0 
+           || strcmp(input, "Q") == 0 || strcmp(input, "q") == 0) {
+            return 1; // Input valido
+        }
+        printf("\nFormato non valido! Usa: numero tra 0 e 9 oppure 'q' per tornare al menu\n");
+        return 0;
+
     }
-    exit(EXIT_FAILURE);
 }
 
-/************************************************************************************************************************************************************************* */
-/*  FUNZIONI GESTIONE INPUT  */
+
+void funzione_menu() {
+    char buffer[MAXLETTORE];
+    char input[MAXSCRITTORE];
+    
+    while (1) {
+
+        CLEAR_SCREEN();
+        printf("\n=== MENU PRINCIPALE ===\n");
+        printf("1. Crea partita\n");
+        printf("2. Unisciti a partita\n");
+        printf("3. Esci\n");
+        printf("========================\n");
+        printf("Scegli un'opzione: ");
+        // Inizializza il buffer
+        
+        
+        
+        memset(input, 0, MAXLETTORE);
+        fgets(input, MAXLETTORE, stdin);
+        if (strstr(input, "1")) {
+            // Invia richiesta di creazione partita
+            send(sd, MSG_CLIENT_CREAATE, strlen(MSG_CLIENT_CREAATE), 0);
+            funzione_crea_partita();
+            break;
+        } else if (strstr(input, "2")) {
+            // Invia richiesta di unione a partita
+            send(sd, MSG_CLIENT_JOIN, strlen(MSG_CLIENT_JOIN), 0);
+            funzione_entra_partita();
+            break;
+        } else if (strstr(input, "3")) {
+            // Invia richiesta di uscita
+            send(sd, MSG_CLIENT_QUIT, strlen(MSG_CLIENT_QUIT), 0);
+            close(sd);
+            exit(EXIT_SUCCESS);
+            } else {
+                printf("Scelta non valida. Riprova.\n");
+                sleep(1); // Aspetta 1 secondo prima di ripetere il menu
+            }
+    } // Close the while loop
+
+}
+
+void funzione_entra_partita(){
+    char buffer[MAXLETTORE];
+    char input[MAXSCRITTORE];
+
+    // Ricevi messaggio dal server
+    memset(buffer, 0, MAXLETTORE);
+    if (recv(sd, buffer, MAXLETTORE, 0) <= 0) {
+        printf("Connessione al server persa.\n");
+        exit(EXIT_FAILURE);
+    }
+
+    if (strstr(buffer, MSG_NO_GAME)) {
+        // Se il server ha restituito "MSG_NO_GAME", significa che non ci sono partite disponibili
+        printf("Nessuna partita disponibile. Torna al menu principale.\n");
+        return;
+    }else{
+        // Mostra il messaggio ricevuto
+        printf("%s", buffer);
+    }
+
+    // Invia la mossa
+    while (1) {
+        memset(input, 0, MAXLETTORE);
+        if (get_valid_match(input)) {
+            break; // Manda l'input valido e esce dal loop
+        }
+    }
+
+
+    if(strstr(input, "q") || strstr(input, "Q")){
+        // Invia richiesta di uscita
+        send(sd, MSG_CLIENT_QUIT, strlen(MSG_CLIENT_QUIT), 0);
+        return;
+    }else{
+        // Invia la scelta al server
+        send(sd, input, strlen(input), 0);
+    }
+
+    // Ricevi messaggio dal server
+    memset(buffer, 0, MAXLETTORE);
+    if (recv(sd, buffer, MAXLETTORE, 0) <= 0) {
+        printf("Connessione al server persa.\n");
+        exit(EXIT_FAILURE);
+    }
+
+    if(strstr(buffer, MSG_JOIN_ERROR)) {
+        // Se il server ha restituito un errore, significa che la partita è piena o non esistente
+        printf("Partita piena o non esistente. Torna al menu principale.\n");
+        return;
+    }
+
+    if(strstr(buffer, MSG_SERVER_START)) {
+        gioca_partite(AVVERSARIO);
+    }
+}
+
+void funzione_crea_partita(){
+    char buffer[MAXLETTORE];
+    char input[MAXSCRITTORE];
+
+    // Ricevi messaggio dal server
+    memset(buffer, 0, MAXLETTORE);
+    if (recv(sd, buffer, MAXLETTORE, 0) <= 0) {
+        printf("Connessione al server persa.\n");
+        exit(EXIT_FAILURE);
+    }
+
+
+    while (1)
+    {
+        //Quando ricevo MSG_SERVER_START allora il client inizia la partita da proprietario della lobby
+
+        if (strstr(buffer, MSG_SERVER_START)){
+            gioca_partite(PROPRIETARIO);
+            return;
+        }
+    }
+    
+
+}
+
+
+// ==========================================================
+//  FUNZIONI PER GESTIRE LA PARTITA
+// ==========================================================
+
 
 
 // Funzione per ottenere la mossa del client
 int get_valid_move(char *input) {
     int row, col;
     while (1) {
-        printf("\nInserisci la tua mossa (riga,colonna) [0-2]: ");
+        printf("\nInserisci la tua mossa (riga,colonna) [0,2]: ");
 
         if (fgets(input, MAXSCRITTORE, stdin) == NULL) {
             continue;
@@ -90,30 +241,6 @@ int get_valid_move(char *input) {
     }
 }
 
-
-
-// Funzione per ottenere la mossa del client
-int get_valid_match(char *input) {
-    while (1) {
-        //printf("\nInserisci la tua mossa (riga,colonna) [0-2]: ");
-        
-        if (fgets(input, MAXSCRITTORE, stdin) == NULL) {
-            continue;
-        }
-
-        // Rimuove i caratteri di nuova linea (\n o \r\n) se presenti
-        input[strcspn(input, "\r\n")] = 0;
-
-
-        if (strcmp(input, "0") == 0 || strcmp(input, "1") == 0 || strcmp(input, "2") == 0 || strcmp(input, "3") == 0 || strcmp(input, "4") == 0 || strcmp(input, "5") == 0 || strcmp(input, "6") == 0 || strcmp(input, "7") == 0 || strcmp(input, "8") == 0 || strcmp(input, "9") == 0 
-           || strcmp(input, "Q") == 0 || strcmp(input, "q") == 0) {
-            return 1; // Input valido
-        }
-        printf("\nFormato non valido! Usa: numero tra 0 e 9 oppure 'q' per tornare al menu\n");
-        return 0;
-
-    }
-}
 
 void play_again_menu(int socket_fd, int is_winner) {
     CLEAR_SCREEN();
@@ -151,139 +278,28 @@ void play_again_menu(int socket_fd, int is_winner) {
     // Altrimenti continua con il gioco
 }
 
-
-void funzione_menu() {
-    char buffer[MAXLETTORE];
-    char input[MAXSCRITTORE];
-    
-    while (1) {
-        // Ricevi messaggio dal server
-        memset(buffer, 0, MAXLETTORE);
-        if (recv(sd, buffer, MAXLETTORE, 0) <= 0) {
-            printf("Connessione al server persa.\n");
-            exit(EXIT_FAILURE);
-        }
-
-        CLEAR_SCREEN();
-        printf("%s", buffer);
-
-        fgets(input, MAXLETTORE, stdin);
-        if (strstr(input, "1")) {
-            // Invia richiesta di creazione partita
-            send(sd, MSG_CLIENT_CREAATE, strlen(MSG_CLIENT_CREAATE), 0);
-            funzione_crea_partita();
-            break;
-        } else if (strstr(input, "2")) {
-            // Invia richiesta di unione a partita
-            send(sd, MSG_CLIENT_JOIN, strlen(MSG_CLIENT_JOIN), 0);
-            funzione_entra_partita();
-            break;
-        } else if (strstr(input, "3")) {
-            // Invia richiesta di uscita
-            send(sd, MSG_CLIENT_QUIT, strlen(MSG_CLIENT_QUIT), 0);
-            close(sd);
-            exit(EXIT_SUCCESS);
-            } else {
-                printf("Scelta non valida. Riprova.\n");
-            }
-        } // Close the while loop
-
-}
-
-void funzione_entra_partita(){
-    char buffer[MAXLETTORE];
-    char input[MAXSCRITTORE];
-
-    // Ricevi messaggio dal server
-    memset(buffer, 0, MAXLETTORE);
-    if (recv(sd, buffer, MAXLETTORE, 0) <= 0) {
-        printf("Connessione al server persa.\n");
-        exit(EXIT_FAILURE);
-    }
-
-    if (strstr(buffer, "0")) {
-        // Se il server ha restituito "0", significa che non ci sono partite disponibili
-        printf("Nessuna partita disponibile. Torna al menu principale.\n");
-        return;
-    }else{
-        // Mostra il messaggio ricevuto
-        printf("%s", buffer);
-    }
-
-    // Invia la mossa
-    while (1) {
-        memset(input, 0, MAXLETTORE);
-        if (get_valid_match(input)) {
-            break; // Manda l'input valido e esce dal loop
-        }
-    }
-
-
-    if(strstr(input, "q") || strstr(input, "Q")){
-        // Invia richiesta di uscita
-        send(sd, MSG_CLIENT_QUIT, strlen(MSG_CLIENT_QUIT), 0);
-        return;
-    }else{
-        // Invia la scelta al server
-        send(sd, input, strlen(input), 0);
-    }
-
-    // Ricevi messaggio dal server
-    memset(buffer, 0, MAXLETTORE);
-    if (recv(sd, buffer, MAXLETTORE, 0) <= 0) {
-        printf("Connessione al server persa.\n");
-        exit(EXIT_FAILURE);
-    }
-
-    if(strstr(buffer, MSG_SERVER_PARTITA_PIENA) || strstr(buffer, MSG_SERVER_PARTITA_NON_ESISTENTE)){
-        printf("Partita piena o non esistente. Torna al menu principale.\n");
-        return;
-    }
-
-    if(strstr(buffer, MSG_SERVER_START)) {
-        gioca_partite(AVVERSARIO);
-    }
-}
-
-void funzione_crea_partita(){
-    char buffer[MAXLETTORE];
-    char input[MAXSCRITTORE];
-
-    // Ricevi messaggio dal server
-    memset(buffer, 0, MAXLETTORE);
-    if (recv(sd, buffer, MAXLETTORE, 0) <= 0) {
-        printf("Connessione al server persa.\n");
-        exit(EXIT_FAILURE);
-    }
-
-    // Mostra il messaggio ricevuto, inserire nome partita
-    printf("%s", buffer);
-
-    fgets(input, MAXLETTORE, stdin);
-    send(sd, input, strlen(input), 0);
-
-
-
-    while (1)
-    {
-        memset(buffer, 0, MAXLETTORE);
-        if (recv(sd, buffer, MAXLETTORE, 0) <= 0) {
-            printf("Connessione al server persa.\n");
-            exit(EXIT_FAILURE);
-        }
-
-        if (strstr(buffer, MSG_SERVER_START)){
-            gioca_partite(PROPRIETARIO);
-        }
-    }
-    
-
-}
-
-
 void gioca_partita(const enum tipo_giocatore tipo_giocatore) {
     char buffer[MAXLETTORE];
     char input[MAXSCRITTORE];
+
+    //Questa struttura gestisce i messaggi in arrivo dal server, gestendo la partita in modo differente tra Proprietario e Avversario
+    // Ricevi messaggio dal server
+    memset(buffer, 0, MAXLETTORE);
+    if (recv(sd, buffer, MAXLETTORE, 0) <= 0) {
+        printf("Connessione al server persa.\n");
+        exit(EXIT_FAILURE);
+    }
+    if (strstr(buffer, MSG_SERVER_BOARD)) {
+        // Mostra il messaggio ricevuto
+        printf("%s", buffer);
+    }
+    // Invia la mossa
+    while (1) {
+        memset(input, 0, MAXLETTORE);
+        if (get_valid_move(input)) {
+            break; // Manda l'input valido e esce dal loop
+        }
+    }
 
     if (tipo_giocatore ==  PROPRIETARIO){
 
@@ -292,4 +308,3 @@ void gioca_partita(const enum tipo_giocatore tipo_giocatore) {
     }
 
 }
-
