@@ -24,12 +24,12 @@
 
 #define MSG_CLIENT_CREAATE          "CREATE" // il client crea una nuova partita
 
-#define MSG_SERVER_START            "START" // entrambi i giocatori sono pronti, inizia la partita
-
 
 // ========== MESSAGGI INVIATI DAL SERVER ==========
 
 #define MSG_SERVER_MENU             "MENU"  // per stampare il menu di benvenuto
+
+#define MSG_SERVER_START            "START" // entrambi i giocatori sono pronti, inizia la partita
 
 #define MSG_SERVER_WELCOME          "WELCOME"  // seguito da X o O per il messaggio all entrata in game
 
@@ -54,6 +54,7 @@
 #define MSG_SERVER_DRAW             "DRAW"
 
 #define MSG_SERVER_OPPONENT_LEFT    "OPPONENT_LEFT"
+
 
 #endif // PROTOCOLLO_H
 
