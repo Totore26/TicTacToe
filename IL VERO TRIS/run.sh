@@ -1,26 +1,66 @@
 #!/bin/bash
 
-# Percorso assoluto dove si trovano gli eseguibili
-WORK_DIR="/Users/salvatoretortora/Desktop/IL VERO TRIS"
+# Exit on error
+set -e
 
-# Entra nella directory dove si trovano i file server.c e client.c
-cd "$WORK_DIR"
+# Percorso alla directory del progetto
+WORK_DIR="/home/merime/Desktop/Tris TOTOR/TicTacToe/IL VERO TRIS"
 
-# Compila i file server.c e client.c
-gcc server.c -o server -pthread
-gcc client.c -o client
+# Find suitable terminal emulator
+if command -v gnome-terminal.real &> /dev/null; then
+    TERMINAL="gnome-terminal.real"
+    TERM_OPTS="-- bash -c"
+elif command -v x-terminal-emulator &> /dev/null; then
+    TERMINAL="x-terminal-emulator"
+    TERM_OPTS="-e"
+elif command -v xterm &> /dev/null; then
+    TERMINAL="xterm"
+    TERM_OPTS="-e"
+elif command -v konsole &> /dev/null; then
+    TERMINAL="konsole"
+    TERM_OPTS="-e"
+else
+    echo "Error: No suitable terminal emulator found"
+    exit 1
+fi
 
-# Avvia il server in un nuovo terminale
-echo "Avvio il server in un nuovo terminale..."
-osascript -e "tell application \"Terminal\" to do script \"cd '$WORK_DIR'; ./server\""
+# Entra nella directory del progetto
+if ! cd "$WORK_DIR"; then
+    echo "Error: Could not change to project directory"
+    exit 1
+fi
 
-# Attendi un po' per assicurarsi che il server sia avviato
-sleep 1
+# Clean previous builds
+rm -f Server/server Client/client
 
-# Avvia i due client in due nuovi terminali
-echo "Avvio i due client in nuovi terminali..."
-osascript -e "tell application \"Terminal\" to do script \"cd '$WORK_DIR'; ./client\""
-osascript -e "tell application \"Terminal\" to do script \"cd '$WORK_DIR'; ./client\""
+# Compila il server
+echo "Compiling server..."
+cd Server || exit 1
+if ! gcc server.c funzioni/funzioni.c -o server -pthread; then
+    echo "Error: Server compilation failed"
+    exit 1
+fi
 
-echo "Server e client avviati!"
- 
+# Compila il client 
+echo "Compiling client..."
+cd ../Client || exit 1
+if ! gcc client.c funzioni.c -o client; then
+    echo "Error: Client compilation failed"
+    exit 1
+fi
+
+# Launch server and clients with proper terminal options
+echo "Starting server..."
+$TERMINAL $TERM_OPTS "cd '$WORK_DIR/Server' && ./server; read -p 'Press Enter to exit...'" &
+
+# Wait for server startup
+sleep 2
+
+# Launch clients
+echo "Starting clients..."
+$TERMINAL $TERM_OPTS "cd '$WORK_DIR/Client' && ./client; read -p 'Press Enter to exit...'" &
+$TERMINAL $TERM_OPTS "cd '$WORK_DIR/Client' && ./client; read -p 'Press Enter to exit...'" &
+
+# Added wait to keep parent process running
+echo "Server and clients started! Press Ctrl+C to exit"
+wait
