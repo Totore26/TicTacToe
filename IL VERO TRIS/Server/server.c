@@ -80,21 +80,12 @@ void *threadLobby(void *arg) {
     Giocatore *giocatore = (Giocatore *)arg; //estraggo i dati
     char buffer[BUFFER_SIZE]; 
     memset(buffer, 0, sizeof(buffer));
-    
-    // Messaggio di benvenuto
-    sprintf(buffer, MSG_SERVER_MENU);
-    if ( send(giocatore->socket, buffer, strlen(buffer), 0) < 0 ) {
-        perror("[Lobby] Errore nell'invio del messaggio di benvenuto\n");
-        close(giocatore->socket);
-        free(giocatore);
-        pthread_exit(NULL);
-    }
 
     // Ciclo della lobby (quando esco si chiude il giocatore e il thread)
     while (1) {
 
         // invio il messaggio di scelta
-        sprintf(buffer, MSG_CHOISE);
+        sprintf(buffer, MSG_SERVER_MENU);
         if ( send(giocatore->socket, buffer, strlen(buffer), 0) < 0 ) {
             perror("[Lobby] Errore nell'invio del messaggio di scelta\n");
             break;
@@ -111,8 +102,8 @@ void *threadLobby(void *arg) {
         if ( strcmp( buffer, MSG_CLIENT_CREAATE ) == 0 ) { 
 
             //controllo di non aver raggiunto il numero massimo di partite
-            if (!MaxPartiteRaggiunte()) {
-                sprintf(buffer, "[Lobby] Errore, numero massimo di partite raggiunto.\n");
+            if (MaxPartiteRaggiunte()) {
+                sprintf(buffer, MSG_SERVER_MAX_GAMES);
                 if ( send(giocatore->socket, buffer, strlen(buffer), 0) < 0 ) {
                     perror("[Lobby] Errore nell'invio del messaggio di errore\n");
                 }
@@ -170,7 +161,6 @@ void *threadLobby(void *arg) {
                     break;
                 }
                 
-                // Fix format string warning by using a format specifier
                 sprintf(buffer, "%s", partiteDisponibili);
                 if ( send(giocatore->socket, buffer, strlen(buffer), 0) < 0 ) {
                     perror("[Lobby] Errore nell'invio della lista delle partite disponibili\n");
@@ -220,7 +210,7 @@ void *threadLobby(void *arg) {
         } else if ( strcmp( buffer, MSG_CLIENT_QUIT ) == 0 ) { // il giocatore ha scelto di uscire dalla lobby e quindi dal server
             break;
         } else {
-            sprintf(buffer, "[Lobby] Errore, scelta del giocatore non gestita.\n");
+            perror("[Lobby] Errore, comando non valido\n");
             break;
         }
     }

@@ -56,6 +56,7 @@ int generazioneIdPartita(Lobby *lobby, const char *name, int host_socket) {
     return -1; // nessun id disponibile (errore)
 }
 
+// se le partite max torno 1, altrimenti torno 0
 int MaxPartiteRaggiunte() {
     int partiteAttive = 0;
 

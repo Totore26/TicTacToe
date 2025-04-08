@@ -27,7 +27,7 @@
 
 // ========== MESSAGGI INVIATI DAL SERVER ==========
 
-#define MSG_SERVER_MENU             "MENU"  // per stampare il menu di benvenuto
+#define MSG_SERVER_MENU             "MENU"  // per stampare il menu di benvenuto (unisciti, partecipa, esci)
 
 #define MSG_SERVER_START            "START" // entrambi i giocatori sono pronti, inizia la partita
 
@@ -37,13 +37,13 @@
 
 #define MSG_NO_GAME                 "NO_GAME" // per segnalare che non ci sono partite disponibili
 
+#define MSG_SERVER_MAX_GAMES        "MAX_GAMES" // per segnalare che sono state raggiunte le partite massime
+
 #define MSG_JOIN_ERROR              "JOIN_ERROR" // errore durante l'unione a una partita
 
 #define MSG_YOUR_TURN               "YOUR_TURN" // per segnalare che è il turno del giocatore
 
 #define MSG_SERVER_OPPONENT_TURN    "OPPONENT_TURN" // per segnalare che è il turno dell avversario
-
-#define MSG_CHOISE                  "CHOISE" // per segnalare che il giocatore può scegliere tra crea o unisciti
 
 #define MSG_SERVER_BOARD            "BOARD"  // seguito da 9 caratteri
 
