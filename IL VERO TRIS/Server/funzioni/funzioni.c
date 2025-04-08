@@ -14,9 +14,11 @@ int emptyLobby() {
 
     pthread_mutex_lock(&lobby.lobbyMutex);
     for (int i = 0; i < MAX_GAMES; i++) 
-        if (lobby.partita[i].statoPartita == PARTITA_IN_ATTESA) 
+        if (lobby.partita[i].statoPartita == PARTITA_IN_ATTESA) {
+            pthread_mutex_unlock(&lobby.lobbyMutex);
             return 0; // La lobby non è vuota
-
+        }
+            
     pthread_mutex_unlock(&lobby.lobbyMutex);
     return 1; // La lobby è vuota
 }

@@ -171,6 +171,7 @@ void *threadLobby(void *arg) {
                     perror("[Lobby] Errore nell'invio del messaggio di partite non disponibili\n");
                     break;
                 }
+                continue;
             } else { // altrimenti invio la lista delle partite disponibili
 
                 char *partiteDisponibili = generaStringaPartiteDisponibili(); 
