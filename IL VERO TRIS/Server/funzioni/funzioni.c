@@ -92,23 +92,52 @@ void inizializzazioneGriglia( Partita *partita) {
     }
 }
 
-// devo implementare elaboraMossa(partita->Griglia); ??????????????????????????????????????????????
-
-void elaboraMossa(char *griglia, int mossa) {
-    int row = (mossa - 1) / SIZE;
-    int col = (mossa - 1) % SIZE;
-
-    if (griglia[row * SIZE + col] == ' ') {
-        griglia[row * SIZE + col] = 'X'; // o 'O' a seconda del giocatore
-    } else {
-        printf("Mossa non valida, riprova.\n");
+// questa torna una stringa (da provare)
+char *grigliaFormattata(char griglia[SIZE][SIZE]) {
+    char *grigliaFormattata = malloc(BUFFER_SIZE);
+    if (grigliaFormattata == NULL) {
+        perror("[f grigliaFormattata] grigliaFormattata malloc failed");
+        return NULL;
     }
+    int index = 0;
+
+    index += snprintf(grigliaFormattata + index, 1024 - index, "\n");
+    for (int i = 0; i < 3; i++) {
+        for (int j = 0; j < 3; j++) {
+            index += snprintf(grigliaFormattata + index, 1024 - index, " %c ", griglia[i][j]);
+            if (j < 2) index += snprintf(grigliaFormattata + index, 1024 - index, "|");
+        }
+        index += snprintf(grigliaFormattata + index, 1024 - index, "\n");
+        if (i < 2) index += snprintf(grigliaFormattata + index, 1024 - index, "---|---|---\n");
+    }
+    index += snprintf(grigliaFormattata + index, 1024 - index, "\n");
+
+    return grigliaFormattata;
 }
 
+// devo implementare queste 2 ---->>>> ??????????????????????????????????????????????
 
+int *convertiMossa(int mossa) {
+    int *coordinate = malloc(2 * sizeof(int));
+    if (coordinate == NULL) {
+        perror("[f convertiMossa] coordinate malloc failed");
+        return NULL;
+    }
+    coordinate[0] = (mossa - 1) / SIZE; // riga
+    coordinate[1] = (mossa - 1) % SIZE; // colonna
+    return coordinate;
+}
 
-int switchGiocatoreCorrente(int current) {
-    return 1 - current; // alterna tra 0 e 1
+int eseguiMossa(char board[3][3], int row, int col, char player) {
+    if (is_valid_move(board, row, col)) {
+        board[row][col] = player;
+        return 1;
+    }
+    return 0;
+}
+
+int switchGiocatore(int current) {
+    return !current;
 }
 
 int check_winner(char symbol, Partita *partita) {

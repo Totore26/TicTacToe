@@ -24,6 +24,8 @@
 
 #define MSG_CLIENT_CREAATE          "CREATE" // il client crea una nuova partita
 
+#define MSG_CLIENT_REMATCH          "REMATCH" // il client richiede un rematch
+
 
 // ========== MESSAGGI INVIATI DAL SERVER ==========
 
@@ -43,7 +45,7 @@
 
 #define MSG_YOUR_TURN               "YOUR_TURN" // per segnalare che è il turno del giocatore
 
-#define MSG_SERVER_OPPONENT_TURN    "OPPONENT_TURN" // per segnalare che è il turno dell avversario
+#define MSG_OPPONENT_TURN           "OPPONENT_TURN" // per segnalare che è il turno dell avversario
 
 #define MSG_SERVER_BOARD            "BOARD"  // seguito da 9 caratteri
 

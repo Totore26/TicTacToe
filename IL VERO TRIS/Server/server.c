@@ -128,7 +128,7 @@ void *threadLobby(void *arg) {
             }
             // inizializzo la partita
             partita->giocatoreAdmin = *giocatore;
-            partita->statoPartita = PARTITA_IN_ATTESA; 
+            partita->statoPartita = PARTITA_IN_CORSO;
             partita->turnoCorrente = 0; // il primo turno è del giocatore admin
             pthread_mutex_init(&partita->partitaMutex, NULL);
             
@@ -150,19 +150,38 @@ void *threadLobby(void *arg) {
                 break;
             }
 
+            partita->statoPartita = PARTITA_IN_ATTESA; 
 
+            //ciclo dell'inizio partita/rematch
+            while(1){
 
+                // quando un altro giocatore si unisce alla partita, il thread corrente deve attendere che termini per gestire il rematch
+                while(partita->statoPartita != PARTITA_TERMINATA) {
+                    sleep(1);                                               // TODO -----> da gestire se il client esce mentre sono in questo while
+                }
 
-            // quando un altro giocatore si unisce alla partita, il thread corrente deve attendere che termini 
-            while(partita->statoPartita != PARTITA_TERMINATA) {
-                sleep(1);
+                //partita terminata -> vuoi giocare ancora? attendo la risposta appena terminata la partita 
+                //(il vincitore sara l'admin, da modificare nel thread partita)
+                if ( recv(giocatore->socket, buffer, sizeof(buffer), 0) <= 0 ) { 
+                    perror("[Lobby] Errore nella ricezione della scelta del giocatore per il rematch\n");
+                    break;
+                }
+
+                if ( strcmp( buffer, MSG_CLIENT_QUIT ) == 0 ) { // vuole uscire, chiudo la connessione e libero la memoria
+                    close(giocatore->socket);
+                    free(giocatore);
+                    free(partita);
+                    pthread_mutex_destroy(&partita->partitaMutex);
+                    pthread_exit(NULL);
+                } else if ( strcmp( buffer, MSG_CLIENT_REMATCH ) == 0 ) { // rematch quindi metto la partita in attesa e aspetto un altro giocatore
+                    partita->statoPartita = PARTITA_IN_ATTESA;
+                    continue; // non esco dal ciclo finche il giocatore non decide di uscire
+                } else {
+                    perror("[Lobby] Errore, comando non valido\n");
+                    break;
+                }
             }
 
-            //a partita termianta vedo se il vincitore vuole giocare ancora (il vincitore sara l'admin, da modificare nel thread partita)
-
-            //se il giocatore vuole giocare ancora metto la partita in attesa altrimenti lo riporto al menu
-
-        
         } else if ( strcmp( buffer, MSG_CLIENT_JOIN ) == 0 ) { // il giocatore ha scelto di unirsi a una partita
 
             // se non ci sono partite disponibili
@@ -175,9 +194,6 @@ void *threadLobby(void *arg) {
                 continue;
             } else { // altrimenti invio la lista delle partite disponibili
 
-                for (int i = 0; i<MAX_GAMES; i++) {
-                    printf("Lobby %d : %d\n", i, lobby.partita[i].statoPartita);
-                    }
                 char *partiteDisponibili = generaStringaPartiteDisponibili(); 
                 if (partiteDisponibili == NULL) {
                     perror("[Lobby] Errore nella generazione della stringa delle partite disponibili\n");
@@ -237,7 +253,7 @@ void *threadLobby(void *arg) {
             break;
         }
     }
-    // Chiudi la connessione e libera la memoria
+    // Chiudo la connessione e libero la memoria
     close(giocatore->socket);
     free(giocatore);
     pthread_exit(NULL);
@@ -246,30 +262,45 @@ void *threadLobby(void *arg) {
 
 // Thread per gestire una partita
 void *threadPartita(void *arg) {
- /* Partita *partita = (Partita *)arg;
-    Giocatore giocatori[2] = { partita->giocatoreAdmin, partita->giocatoreGuest };
+    Partita *partita = (Partita *)arg;
+    Giocatore giocatore[2] = { partita->giocatoreAdmin, partita->giocatoreGuest };
+    char simbolo[2] = { "X", "O" };
     char buffer[1024];
     int giocatoreCorrente = 0;
+    int giocatoreInAttesa = 1;
     inizializzazioneGriglia(partita);
 
-    // ciclo di gioco
+    // inizio partita invio a entrambi la griglia vuota
+    sprintf(buffer, MSG_SERVER_BOARD);
+    if ( send(giocatore[0].socket, buffer, strlen(buffer), 0) < 0 || send(giocatore[1].socket, buffer, strlen(buffer), 0) < 0 ) {
+        perror("[Partita] Errore nell'invio del messaggio per la griglia iniziale\n");
+        pthread_exit(NULL);
+    }
+
+    char *griglia = grigliaFormattata(partita->Griglia);
+    if ( send(giocatore[0].socket, griglia, strlen(griglia), 0) < 0 || send(giocatore[1].socket, griglia, strlen(griglia), 0) < 0 ) {
+        perror("[Partita] Errore nell'invio della griglia iniziale\n");
+        pthread_exit(NULL);
+    }
+
+    // ciclo di gioco che parla contemporaneamente con i due giocatori ( devo usare i mutex ) 
     while (1) {
         
-        // invio il messaggio del turno al giocatore corrente ( inizia sempre il proprietario cioe X )
-        sprintf(buffer, MSG_YOUR_TURN);
-        if ( send(giocatori[giocatoreCorrente].socket, buffer, strlen(buffer), 0) < 0 ) {
-            perror("[Partita] Errore nell'invio del messaggio di turno\n");
-            break;
+        // invio il messaggio del turno ai giocatori ( inizia sempre il proprietario cioe X )
+        sprintf( buffer, MSG_YOUR_TURN );
+        if ( send(giocatore[giocatoreCorrente].socket, buffer, strlen(buffer), 0) < 0 ) {
+            perror("[Partita] Errore nell'invio del messaggio per il turno\n");
+            pthread_exit(NULL);
         }
-        // invio all opponent il messaggio di attesa ( giocatore guest, quindi O )
-        sprintf(buffer, MSG_SERVER_OPPONENT_TURN);
-        if ( send(giocatori[1 - giocatoreCorrente].socket, buffer, strlen(buffer), 0) < 0 ) {
-            perror("[Partita] Errore nell'invio del messaggio di attesa all opponent\n");
-            break;
+        sprintf( buffer, MSG_OPPONENT_TURN );
+        if ( send(giocatore[giocatoreCorrente].socket, buffer, strlen(buffer), 0) < 0 ) {
+            perror("[Partita] Errore nell'invio del messaggio per il turno\n");
+            pthread_exit(NULL);
         }
 
+
         // attendo la mossa del giocatore corrente
-        if ( recv(giocatori[giocatoreCorrente].socket, buffer, sizeof(buffer), 0) <= 0 ) {
+        if ( recv(giocatore[giocatoreCorrente].socket, buffer, sizeof(buffer), 0) <= 0 ) {
             perror("[Partita] Errore nella ricezione della mossa del giocatore corrente\n");
             break;
         }
@@ -310,15 +341,14 @@ void *threadPartita(void *arg) {
             break;
         }
 
-        giocatoreCorrente = switchGiocatoreCorrente(giocatoreCorrente);
+        giocatoreCorrente = switchGiocatore(giocatoreCorrente);
+        giocatoreInAttesa = switchGiocatore(giocatoreInAttesa);
     }
 
     close(giocatori[0].socket);
     close(giocatori[1].socket);
     free(partita);
     pthread_exit(NULL);
-    */
-    
 }
 
 
