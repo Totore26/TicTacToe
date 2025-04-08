@@ -170,7 +170,8 @@ void *threadLobby(void *arg) {
                     break;
                 }
                 
-                sprintf(buffer, partiteDisponibili);
+                // Fix format string warning by using a format specifier
+                sprintf(buffer, "%s", partiteDisponibili);
                 if ( send(giocatore->socket, buffer, strlen(buffer), 0) < 0 ) {
                     perror("[Lobby] Errore nell'invio della lista delle partite disponibili\n");
                     break;
@@ -273,25 +274,26 @@ void *threadPartita(void *arg) {
         }
         
 
-        if (board[row][col] == ' ') {
-            board[row][col] = symbols[current_player];
+        if (partita->Griglia[row][col] == ' ') {
+            partita->Griglia[row][col] = giocatoreCorrente == 0 ? 'X' : 'O';
         } else {
             sprintf(buffer, "Mossa non valida, riprova.\n");
-            send(players[current_player], buffer, strlen(buffer), 0);
+            send(giocatori[giocatoreCorrente].socket, buffer, strlen(buffer), 0);
             continue;
         }
 
-        if (check_winner(symbols[current_player])) {
-            sprintf(buffer, "Hai vinto!\n");
-            send(players[current_player], buffer, strlen(buffer), 0);
-            send(players[1 - current_player], "Hai perso!\n", 11, 0);
+        if (check_winner(giocatoreCorrente == 0 ? 'X' : 'O', partita)) {
+            sprintf(buffer, MSG_SERVER_WIN);
+            send(giocatori[giocatoreCorrente].socket, buffer, strlen(buffer), 0);
+            sprintf(buffer, MSG_SERVER_LOSE);
+            send(giocatori[1 - giocatoreCorrente].socket, buffer, strlen(buffer), 0);
             break;
         }
 
-        if (is_draw()) {
-            sprintf(buffer, "Pareggio!\n");
-            send(players[0], buffer, strlen(buffer), 0);
-            send(players[1], buffer, strlen(buffer), 0);
+        if (is_draw(partita)) {
+            sprintf(buffer, MSG_SERVER_DRAW);
+            send(giocatori[0].socket, buffer, strlen(buffer), 0);
+            send(giocatori[1].socket, buffer, strlen(buffer), 0);
             break;
         }
 

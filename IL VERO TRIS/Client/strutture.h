@@ -7,6 +7,7 @@
 //dimensioni buffer per leggere e scrivere sulla socket
 #define MAXLETTORE 1024
 #define MAXSCRITTORE 16
+#define BUFFER_SIZE 1024  // Add this definition
 
 //serve alla funzione partita per gestire gli input
 enum tipo_giocatore

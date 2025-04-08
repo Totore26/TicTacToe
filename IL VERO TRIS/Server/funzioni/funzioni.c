@@ -29,12 +29,12 @@ char *generaStringaPartiteDisponibili() {
         return NULL;
     }
     int index = 0;
-    index += snprintf(partiteDisponibili + index, BUFFER_SIZE - index, "Partite disponibili:\n ");
+    index += snprintf(partiteDisponibili + index, BUFFER_SIZE - index, "Partite disponibili:\n");
 
     pthread_mutex_lock(&lobby.lobbyMutex);
     for (int i = 0; i < MAX_GAMES; i++) 
         if (lobby.partita[i].statoPartita == PARTITA_IN_ATTESA)
-            index += snprintf(partiteDisponibili + index, "%d\n", i); //uso snprintf per evitare buffer overflow
+            index += snprintf(partiteDisponibili + index, BUFFER_SIZE - index, "%d\n", i); //uso snprintf per evitare partiteDisponibili overflow
     
     pthread_mutex_unlock(&lobby.lobbyMutex);
 
@@ -83,4 +83,43 @@ void inizializzazioneGriglia( Partita *partita) {
 }
 int switchGiocatoreCorrente(int current) {
     return 1 - current; // alterna tra 0 e 1
+}
+
+int check_winner(char symbol, Partita *partita) {
+    // Check rows
+    for(int i = 0; i < SIZE; i++) {
+        if(partita->Griglia[i][0] == symbol && 
+           partita->Griglia[i][1] == symbol && 
+           partita->Griglia[i][2] == symbol)
+            return 1;
+    }
+    
+    // Check columns
+    for(int i = 0; i < SIZE; i++) {
+        if(partita->Griglia[0][i] == symbol && 
+           partita->Griglia[1][i] == symbol && 
+           partita->Griglia[2][i] == symbol)
+            return 1;
+    }
+    
+    // Check diagonals
+    if(partita->Griglia[0][0] == symbol && 
+       partita->Griglia[1][1] == symbol && 
+       partita->Griglia[2][2] == symbol)
+        return 1;
+        
+    if(partita->Griglia[0][2] == symbol && 
+       partita->Griglia[1][1] == symbol && 
+       partita->Griglia[2][0] == symbol)
+        return 1;
+        
+    return 0;
+}
+
+int is_draw(Partita *partita) {
+    for(int i = 0; i < SIZE; i++)
+        for(int j = 0; j < SIZE; j++)
+            if(partita->Griglia[i][j] == ' ')
+                return 0;
+    return 1;
 }

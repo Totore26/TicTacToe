@@ -94,8 +94,10 @@ void funzione_menu() {
         
         
         
-        memset(input, 0, MAXLETTORE);
-        fgets(input, MAXLETTORE, stdin);
+        memset(input, 0, MAXSCRITTORE);  // Fixed buffer size
+        if (fgets(input, MAXSCRITTORE, stdin) == NULL) {  // Fixed buffer size
+            continue;
+        }
         if (strstr(input, "1")) {
             // Invia richiesta di creazione partita
             send(sd, MSG_CLIENT_CREAATE, strlen(MSG_CLIENT_CREAATE), 0);
@@ -141,7 +143,7 @@ void funzione_entra_partita(){
 
     // Invia la mossa
     while (1) {
-        memset(input, 0, MAXLETTORE);
+        memset(input, 0, MAXSCRITTORE);  // Fixed buffer size
         if (get_valid_match(input)) {
             break; // Manda l'input valido e esce dal loop
         }
@@ -171,7 +173,7 @@ void funzione_entra_partita(){
     }
 
     if(strstr(buffer, MSG_SERVER_START)) {
-        gioca_partite(AVVERSARIO);
+        gioca_partita(AVVERSARIO);  // Fixed function name
     }
 }
 
@@ -192,7 +194,7 @@ void funzione_crea_partita(){
         //Quando ricevo MSG_SERVER_START allora il client inizia la partita da proprietario della lobby
 
         if (strstr(buffer, MSG_SERVER_START)){
-            gioca_partite(PROPRIETARIO);
+            gioca_partita(PROPRIETARIO);
             return;
         }
     }
@@ -295,7 +297,7 @@ void gioca_partita(const enum tipo_giocatore tipo_giocatore) {
     }
     // Invia la mossa
     while (1) {
-        memset(input, 0, MAXLETTORE);
+        memset(input, 0, MAXSCRITTORE);  // Fixed buffer size
         if (get_valid_move(input)) {
             break; // Manda l'input valido e esce dal loop
         }
@@ -307,4 +309,19 @@ void gioca_partita(const enum tipo_giocatore tipo_giocatore) {
 
     }
 
+}
+
+// Add this new function
+int get_valid_menu_choice(int min, int max) {
+    int choice;
+    char input[MAXSCRITTORE];
+    
+    while (1) {
+        if (fgets(input, MAXSCRITTORE, stdin) != NULL) {
+            if (sscanf(input, "%d", &choice) == 1 && choice >= min && choice <= max) {
+                return choice;
+            }
+        }
+        printf("Scelta non valida. Inserisci un numero tra %d e %d: ", min, max);
+    }
 }

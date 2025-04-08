@@ -1,7 +1,7 @@
 #include "funzioni.h"
 #include "strutture.h"
 
-sd = 0;
+int sd = 0;  // Add proper type declaration
 
 int main() {
     inizializza_socket();

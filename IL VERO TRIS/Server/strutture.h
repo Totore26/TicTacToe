@@ -1,6 +1,8 @@
 #ifndef STRUTTURE_H
 #define STRUTTURE_H
 
+#include <pthread.h>
+
 #define MAX_GAMES       10
 #define MAX_CLIENTS     (MAX_GAMES * 2)
 #define SIZE            3                   // Dimensione della griglia
