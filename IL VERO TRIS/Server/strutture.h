@@ -13,7 +13,6 @@
 #define PARTITA_IN_CORSO            0       // quando la partita è in corso
 #define PARTITA_TERMINATA           1       // quando un giocatore vince o pareggia
 #define PARTITA_IN_ATTESA           2       // quando si sceglie di partecipare a una partita
-#define PARTITA_NUOVA_CREAZIONE     3       // quando si crea una partita
 
 // la partita quanto termina rimane con stato in corso, passa allo stato terminata solo quando entrambi gli host hanno abbandonato
 

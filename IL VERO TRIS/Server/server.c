@@ -128,7 +128,7 @@ void *threadLobby(void *arg) {
             }
             // inizializzo la partita
             partita->giocatoreAdmin = *giocatore;
-            partita->statoPartita = PARTITA_NUOVA_CREAZIONE; 
+            partita->statoPartita = PARTITA_IN_ATTESA; 
             partita->turnoCorrente = 0; // il primo turno è del giocatore admin
             pthread_mutex_init(&partita->partitaMutex, NULL);
             
@@ -150,7 +150,8 @@ void *threadLobby(void *arg) {
                 break;
             }
 
-            partita->statoPartita = PARTITA_IN_ATTESA;
+
+
 
             // quando un altro giocatore si unisce alla partita, il thread corrente deve attendere che termini 
             while(partita->statoPartita != PARTITA_TERMINATA) {
@@ -174,6 +175,9 @@ void *threadLobby(void *arg) {
                 continue;
             } else { // altrimenti invio la lista delle partite disponibili
 
+                for (int i = 0; i<MAX_GAMES; i++) {
+                    printf("Lobby %d : %d\n", i, lobby.partita[i].statoPartita);
+                    }
                 char *partiteDisponibili = generaStringaPartiteDisponibili(); 
                 if (partiteDisponibili == NULL) {
                     perror("[Lobby] Errore nella generazione della stringa delle partite disponibili\n");
