@@ -129,8 +129,6 @@ void *threadLobby(void *arg) {
             // inizializzo la partita
             partita->giocatoreAdmin = *giocatore;
             partita->statoPartita = PARTITA_IN_ATTESA;
-            partita->turnoCorrente = 0; // il primo turno è del giocatore admin
-            pthread_mutex_init(&partita->partitaMutex, NULL);
             
             // aggiungo alla lobby la nuova partita
             int nuovoId = generazioneIdPartita();
