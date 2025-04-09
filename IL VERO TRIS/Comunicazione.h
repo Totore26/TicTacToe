@@ -57,6 +57,8 @@
 
 #define MSG_SERVER_ADMIN_QUIT       "ADMIN_QUIT" // quando il proprietario decide di abbandonare la partita
 
+#define MSG_SERVER_REMATCH          "REMATCHH" // quando il proprietario decide di fare un rematch (attendo una risposta)
+
 
 #endif // PROTOCOLLO_H
 

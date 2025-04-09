@@ -47,12 +47,12 @@ char *generaStringaPartiteDisponibili() {
 }
 
 // gestione del riutilizzo id partite
-int generazioneIdPartita(Lobby *lobby, const char *name, int host_socket) {
+int generazioneIdPartita() {
     if (emptyLobby())
         return 0;
     
     for (int i = 0; i < MAX_GAMES; i++) 
-        if (lobby->partita[i].statoPartita == PARTITA_TERMINATA) 
+        if (lobby.partita[i].statoPartita == PARTITA_TERMINATA) 
             return i;
 
     return -1; // nessun id disponibile (errore)
@@ -78,6 +78,54 @@ void inizializzaStatoPartite() {
     for (int i = 0; i < MAX_GAMES; i++) 
         lobby.partita[i].statoPartita = PARTITA_TERMINATA;
     pthread_mutex_unlock(&lobby.lobbyMutex);
+}
+
+Partita *creaPartita(Giocatore *giocatore) {
+
+    char buffer[BUFFER_SIZE];
+    
+    //controllo di non aver raggiunto il numero massimo di partite (se raggiunte torna 1)
+    if (MaxPartiteRaggiunte()) {
+        perror("[Lobby] Errore, numero massimo di partite raggiunto, informo il client\n");
+        sprintf(buffer, MSG_SERVER_MAX_GAMES);
+        if ( send(giocatore->socket, buffer, strlen(buffer), 0) < 0 ) {
+            perror("[Lobby] Errore nell'invio del messaggio di errore\n");
+        }
+        return NULL;
+    }
+    
+    // creo la partita
+    Partita *partita = malloc(sizeof(Partita));
+    if (partita == NULL) {
+        perror("[Lobby] Errore nell'allocazione della memoria per la partita\n");
+        return NULL;
+    }
+    // inizializzo la partita
+    partita->giocatoreAdmin = *giocatore;
+    partita->statoPartita = PARTITA_IN_ATTESA;
+    
+    // aggiungo alla lobby la nuova partita
+    int nuovoId = generazioneIdPartita();
+    if (nuovoId == -1) {
+        perror("[Lobby] Errore nella generazione dell'id della partita\n");
+        partita->statoPartita = PARTITA_TERMINATA;
+        return NULL;
+    }
+
+    pthread_mutex_lock(&lobby.lobbyMutex);
+    lobby.partita[nuovoId] = *partita; 
+    pthread_mutex_unlock(&lobby.lobbyMutex);
+
+    // invio il messaggio di attesa al giocatore admin
+    sprintf(buffer, MSG_WAITING_PLAYER);
+    if ( send(giocatore->socket, buffer, strlen(buffer), 0) < 0 ) {
+        perror("[Lobby] Errore nell'invio del messaggio di attesa secondo giocatore\n");
+        return NULL;
+    }
+
+    partita->statoPartita = PARTITA_IN_ATTESA; 
+
+    return partita;
 }
 
 // ==========================================================

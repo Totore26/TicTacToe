@@ -14,3 +14,4 @@ int check_winner(char symbol, Partita *partita);
 int is_draw(Partita *partita);
 char *grigliaFormattata(char griglia[SIZE][SIZE], int turno);
 int *convertiMossa(int mossa);
+Partita *creaPartita(Giocatore *giocatore);
