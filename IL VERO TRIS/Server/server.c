@@ -318,7 +318,7 @@ void *threadPartita(void *arg) {
                 pthread_exit(NULL);
             }
 
-            if ( eseguiMossa(partita->Griglia, coordinate[0], coordinate[1], simboloCorrente) == 0 ) { //se la mossa non è valida
+            if ( eseguiMossa(partita->Griglia, coordinate[0], coordinate[1], simboloGiocatoreCorrente) == 0 ) { //se la mossa non è valida
                 //avviso il client
                 sprintf(buffer, MSG_INVALID_MOVE);
                 if ( send(giocatore[giocatoreCorrente].socket, buffer, strlen(buffer), 0) < 0 ) {
