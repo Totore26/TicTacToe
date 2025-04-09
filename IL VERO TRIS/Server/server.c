@@ -264,26 +264,26 @@ void *threadLobby(void *arg) {
 void *threadPartita(void *arg) {
     Partita *partita = (Partita *)arg;
     Giocatore giocatore[2] = { partita->giocatoreAdmin, partita->giocatoreGuest };
-    char simbolo[2] = { "X", "O" };
+    char simbolo[2] = { 'X', 'O' };
     char buffer[1024];
     int giocatoreCorrente = 0;
     int giocatoreInAttesa = 1;
     inizializzazioneGriglia(partita);
 
-    // inizio partita invio a entrambi la griglia vuota
+    // avviso e invio a entrambi la griglia vuota
     sprintf(buffer, MSG_SERVER_BOARD);
-    if ( send(giocatore[0].socket, buffer, strlen(buffer), 0) < 0 || send(giocatore[1].socket, buffer, strlen(buffer), 0) < 0 ) {
+    if ( send(giocatore[giocatoreCorrente].socket, buffer, strlen(buffer), 0) < 0 || send(giocatore[giocatoreInAttesa].socket, buffer, strlen(buffer), 0) < 0 ) {
         perror("[Partita] Errore nell'invio del messaggio per la griglia iniziale\n");
         pthread_exit(NULL);
     }
 
     char *griglia = grigliaFormattata(partita->Griglia);
-    if ( send(giocatore[0].socket, griglia, strlen(griglia), 0) < 0 || send(giocatore[1].socket, griglia, strlen(griglia), 0) < 0 ) {
+    if ( send(giocatore[giocatoreCorrente].socket, griglia, strlen(griglia), 0) < 0 || send(giocatore[giocatoreInAttesa].socket, griglia, strlen(griglia), 0) < 0 ) {
         perror("[Partita] Errore nell'invio della griglia iniziale\n");
         pthread_exit(NULL);
     }
 
-    // ciclo di gioco che parla contemporaneamente con i due giocatori ( devo usare i mutex ) 
+    // ciclo di gioco che parla contemporaneamente con i due giocatori ( devo usare i mutex ) e ogni ciclo è un turno
     while (1) {
         
         // invio il messaggio del turno ai giocatori ( inizia sempre il proprietario cioe X )
@@ -293,25 +293,29 @@ void *threadPartita(void *arg) {
             pthread_exit(NULL);
         }
         sprintf( buffer, MSG_OPPONENT_TURN );
-        if ( send(giocatore[giocatoreCorrente].socket, buffer, strlen(buffer), 0) < 0 ) {
+        if ( send(giocatore[giocatoreInAttesa].socket, buffer, strlen(buffer), 0) < 0 ) {
             perror("[Partita] Errore nell'invio del messaggio per il turno\n");
             pthread_exit(NULL);
         }
 
-
-        // attendo la mossa del giocatore corrente
+        // attendo la mossa del giocatore corrente 
         if ( recv(giocatore[giocatoreCorrente].socket, buffer, sizeof(buffer), 0) <= 0 ) {
             perror("[Partita] Errore nella ricezione della mossa del giocatore corrente\n");
             break;
         }
 
-        // ricevuta la mossa, aggiorno la griglia e la mando a entrambi i giocatori la griglia aggiornata
-        // la mossa è un intero da 1 a 9
+        // leggo l intero, lo converto in coordinate e eseguo la mossa
+        int mossa = atoi(buffer);
+        int *coordinate = convertiMossa(mossa);
+        eseguiMossa(partita->Griglia, coordinate[0], coordinate[1], X oppure O); // aggiorna la griglia nella partita
 
-        elaboraMossa(partita->Griglia); // aggiorna la griglia nella partita
-        sprintf(buffer, GrigliaCorrente(partita->Griglia)); // metto la griglia aggiornata nel buffer
+        //
 
-        sprintf(buffer, MSG_SERVER_BOARD); // avviso il client che sta per arrivare la griglia aggiornata
+        
+
+        
+
+        sprintf(buffer, MSG_SERVER_BOARD); 
         if ( send(giocatori[0].socket, buffer, strlen(buffer), 0) < 0 ) {
             perror("[Partita] Errore nell'invio del messaggio per ricevere la griglia 1\n");
             break;
