@@ -5,12 +5,6 @@
  * PROTOCOLLO DI COMUNICAZIONE CLIENT ↔ SERVER
  *
  * Tutti i messaggi sono stringhe ASCII terminate da '\n'.
- * I messaggi possono essere inviati/ricevuti tramite socket TCP.
- *
- * Notazione:
- *   C -> S : messaggio inviato dal CLIENT al SERVER
- *   S -> C : messaggio inviato dal SERVER al CLIENT
- *
  * Tutti i messaggi sono UPPERCASE per chiarezza.
  */
 
