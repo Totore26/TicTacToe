@@ -34,10 +34,9 @@ typedef struct {
 
 typedef struct {
     Giocatore giocatoreAdmin;
-    Giocatore giocatoreGuest;   
-    pthread_mutex_t partitaMutex;
+    Giocatore giocatoreGuest;
+    int Vincitore;                      // la socket del vincitore   
     char Griglia[3][3];
-    int turnoCorrente;                  // indice 0 o 1
     int statoPartita;                   // in corso, terminata, in attesa, nuova creazione
 } Partita;
 

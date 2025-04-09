@@ -252,14 +252,17 @@ void *threadPartita(void *arg) {
     int giocatoreCorrente = 0;
     int giocatoreInAttesa = 1;
     int contatoreTurno = -1;
-    char simboloCorrente = 'X';
+    char simboloGiocatoreCorrente = 'X';
+    char simboloGiocatoreInAttesa = 'O';
+    char *griglia;
     inizializzazioneGriglia(partita);
 
     // ciclo di gioco che parla contemporaneamente con i due giocatori ( devo usare i mutex ) e ogni ciclo è un turno
     while (1) {
 
         contatoreTurno++;
-        simboloCorrente = (contatoreTurno % 2 == 0) ? 'X' : 'O';
+        simboloGiocatoreCorrente = (contatoreTurno % 2 == 0) ? 'X' : 'O';
+        simboloGiocatoreInAttesa = ( contatoreTurno % 2 == 0) ? 'O' : 'X';
 
         // avviso e invio a entrambi la griglia aggiornata
         sprintf(buffer, MSG_SERVER_BOARD);
@@ -268,11 +271,16 @@ void *threadPartita(void *arg) {
             pthread_exit(NULL);
         }
 
-        char *griglia = grigliaFormattata(partita->Griglia, contatoreTurno);
-        if ( send(giocatore[giocatoreCorrente].socket, griglia, strlen(griglia), 0) < 0 || send(giocatore[giocatoreInAttesa].socket, griglia, strlen(griglia), 0) < 0 ) {
+        *griglia = grigliaFormattata(partita->Griglia, simboloGiocatoreCorrente);
+        if ( send(giocatore[giocatoreCorrente].socket, griglia, strlen(griglia), 0) < 0 ) {
             perror("[Partita] Errore nell'invio della griglia iniziale\n");
             pthread_exit(NULL);
         }   
+        griglia = grigliaFormattata(partita->Griglia, simboloGiocatoreInAttesa);
+        if ( send(giocatore[giocatoreInAttesa].socket, griglia, strlen(griglia), 0) < 0 ) {
+            perror("[Partita] Errore nell'invio della griglia iniziale\n");
+            pthread_exit(NULL);
+        }
 
         // invio il messaggio del turno ai giocatori ( inizia sempre il proprietario cioe X )
         sprintf( buffer, MSG_YOUR_TURN );
@@ -368,10 +376,45 @@ void *threadPartita(void *arg) {
                 }
 
                 if ( strcmp( buffer, MSG_CLIENT_QUIT ) == 0 ) { // il proprietario ha scelto di uscire tornano entrambi al menu
+                    // informo il guest che il proprietario ha abbandonato
+                    sprintf(buffer, MSG_SERVER_ADMIN_QUIT);
+                    if ( send(partita->giocatoreGuest.socket, buffer, strlen(buffer), 0) < 0 ) {
+                        perror("[Partita] Errore nell'invio del messaggio di abbandono del proprietario\n");
+                        close(giocatore[0].socket);
+                        close(giocatore[1].socket);
+                        partita->statoPartita = PARTITA_TERMINATA;
+                        pthread_exit(NULL);
+                    }
+                    // i due giocatori tornano al menu
+                    sleep(1);
+                    partita->Vincitore = -1;
                     partita->statoPartita = PARTITA_TERMINATA;
                     pthread_exit(NULL);
                 } else if ( strcmp( buffer, MSG_CLIENT_REMATCH ) == 0 ) { // il proprietario ha scelto di fare un rematch quindi informo il guest
-                    sprintf(buffer, );
+                    
+                    //chiedo il rematch al guest
+                    sprintf(buffer, MSG_CLIENT_REMATCH);
+                    if ( send(partita->giocatoreGuest.socket, buffer, strlen(buffer), 0) < 0 ) {
+                        perror("[Partita] Errore nell'invio del messaggio di rivincita al Guest\n");
+                        close(giocatore[0].socket);
+                        close(giocatore[1].socket);
+                        partita->statoPartita = PARTITA_TERMINATA;
+                        pthread_exit(NULL);
+                    }
+
+                    //attendo la risposta del guest
+                    memset(buffer, 0, sizeof(buffer));
+                    if ( recv(partita->giocatoreGuest.socket, buffer, sizeof(buffer), 0) <= 0 ) {
+                        perror("[Partita] Errore nella ricezione della risposta del guest\n");
+                        close(giocatore[0].socket);
+                        close(giocatore[1].socket);
+                        partita->statoPartita = PARTITA_TERMINATA;
+                        pthread_exit(NULL);
+                    }
+
+
+
+
                     
                     break; // esco dal ciclo della partita
                 } else {

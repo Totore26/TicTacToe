@@ -55,6 +55,8 @@
 
 #define MSG_SERVER_OPPONENT_LEFT    "OPPONENT_LEFT"
 
+#define MSG_SERVER_ADMIN_QUIT       "ADMIN_QUIT" // quando il proprietario decide di abbandonare la partita
+
 
 #endif // PROTOCOLLO_H
 
