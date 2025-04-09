@@ -337,6 +337,7 @@ void gioca_partita(const enum tipo_giocatore tipo_giocatore) {
         printf("Connessione al server persa.\n");
         exit(EXIT_FAILURE);
     }
+    CLEAR_SCREEN();
 
     // Codice per Debug
     printf("Ricevo buffer\n");

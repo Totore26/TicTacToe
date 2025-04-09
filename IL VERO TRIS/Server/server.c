@@ -129,8 +129,6 @@ void *threadLobby(void *arg) {
             // inizializzo la partita
             partita->giocatoreAdmin = *giocatore;
             partita->statoPartita = PARTITA_IN_ATTESA;
-            partita->turnoCorrente = 0; // il primo turno è del giocatore admin
-            pthread_mutex_init(&partita->partitaMutex, NULL);
             
             // aggiungo alla lobby la nuova partita
             int nuovoId = generazioneIdPartita();
@@ -279,7 +277,7 @@ void *threadPartita(void *arg) {
             pthread_exit(NULL);
         }
 
-        *griglia = grigliaFormattata(partita->Griglia, simboloGiocatoreCorrente);
+        griglia = grigliaFormattata(partita->Griglia, simboloGiocatoreCorrente);
         if ( send(giocatore[giocatoreCorrente].socket, griglia, strlen(griglia), 0) < 0 ) {
             perror("[Partita] Errore nell'invio della griglia iniziale\n");
             pthread_exit(NULL);
@@ -325,7 +323,7 @@ void *threadPartita(void *arg) {
                 pthread_exit(NULL);
             }
 
-            if ( eseguiMossa(partita->Griglia, coordinate[0], coordinate[1], simboloCorrente) == 0 ) { //se la mossa non è valida
+            if ( eseguiMossa(partita->Griglia, coordinate[0], coordinate[1], simboloGiocatoreCorrente) == 0 ) { //se la mossa non è valida
                 //avviso il client
                 sprintf(buffer, MSG_INVALID_MOVE);
                 if ( send(giocatore[giocatoreCorrente].socket, buffer, strlen(buffer), 0) < 0 ) {
@@ -425,7 +423,7 @@ void *threadPartita(void *arg) {
         }
 
 
-        if ( check_winner(simboloCorrente, partita) ) { // se il giocatore corrente ha vinto
+        if ( check_winner(simboloGiocatoreCorrente, partita) ) { // se il giocatore corrente ha vinto
             sprintf(buffer, MSG_SERVER_WIN);
             if ( send(giocatore[giocatoreCorrente].socket, buffer, strlen(buffer), 0) < 0 ) {
                 perror("[Partita] Errore nell'invio del messaggio di vittoria\n");
