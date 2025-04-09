@@ -5,12 +5,6 @@
  * PROTOCOLLO DI COMUNICAZIONE CLIENT ↔ SERVER
  *
  * Tutti i messaggi sono stringhe ASCII terminate da '\n'.
- * I messaggi possono essere inviati/ricevuti tramite socket TCP.
- *
- * Notazione:
- *   C -> S : messaggio inviato dal CLIENT al SERVER
- *   S -> C : messaggio inviato dal SERVER al CLIENT
- *
  * Tutti i messaggi sono UPPERCASE per chiarezza.
  */
 
@@ -37,6 +31,8 @@
 
 #define MSG_WAITING_PLAYER          "WAITING_PLAYER" // per segnalare che la partita è in attesa di un avversario
 
+#define MSG_WAITING_REMATCH         "WAITING_REMATCH" // quando l avversario deve aspettare la scelta del proprietario
+
 #define MSG_NO_GAME                 "NO_GAME" // per segnalare che non ci sono partite disponibili
 
 #define MSG_SERVER_MAX_GAMES        "MAX_GAMES" // per segnalare che sono state raggiunte le partite massime
@@ -46,6 +42,8 @@
 #define MSG_YOUR_TURN               "YOUR_TURN" // per segnalare che è il turno del giocatore
 
 #define MSG_OPPONENT_TURN           "OPPONENT_TURN" // per segnalare che è il turno dell avversario
+
+#define MSG_INVALID_MOVE            "INVALID_MOVE" // per segnalare che la mossa non è valida
 
 #define MSG_SERVER_BOARD            "BOARD"  // seguito da 9 caratteri
 

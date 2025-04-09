@@ -24,8 +24,7 @@
 // ==========================================================
 
 typedef struct {
-    int socket;     // socket associato al giocatore
-    char simbolo;    // 'X' o 'O'
+    int socket;     // socket associato al giocatore    // 'X' o 'O'
 } Giocatore;
 
 

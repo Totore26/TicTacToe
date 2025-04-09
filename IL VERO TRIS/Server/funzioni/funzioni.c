@@ -93,7 +93,7 @@ void inizializzazioneGriglia( Partita *partita) {
 }
 
 // questa torna una stringa (da provare)
-char *grigliaFormattata(char griglia[SIZE][SIZE]) {
+char *grigliaFormattata(char griglia[SIZE][SIZE], int turno) {
     char *grigliaFormattata = malloc(BUFFER_SIZE);
     if (grigliaFormattata == NULL) {
         perror("[f grigliaFormattata] grigliaFormattata malloc failed");
@@ -109,6 +109,11 @@ char *grigliaFormattata(char griglia[SIZE][SIZE]) {
         }
         index += snprintf(grigliaFormattata + index, 1024 - index, "\n");
         if (i < 2) index += snprintf(grigliaFormattata + index, 1024 - index, "---|---|---\n");
+    }
+    if (turno % 2 == 0) {
+        index += snprintf(grigliaFormattata + index, 1024 - index, "Sei il giocatore X\n");
+    } else {
+        index += snprintf(grigliaFormattata + index, 1024 - index, "Sei il giocatore O\n");
     }
     index += snprintf(grigliaFormattata + index, 1024 - index, "\n");
 
@@ -134,6 +139,18 @@ int eseguiMossa(char board[3][3], int row, int col, char player) {
         return 1;
     }
     return 0;
+}
+
+// ora implemento is_valid_move(board, row, col)
+int is_valid_move(char board[3][3], int row, int col) {
+    
+    if (row < 0 || row >= SIZE || col < 0 || col >= SIZE) 
+        return 0; // mossa non valida
+
+    if (board[row][col] != ' ') 
+        return 0; // cella già occupata
+
+    return 1; // mossa valida
 }
 
 int switchGiocatore(int current) {
