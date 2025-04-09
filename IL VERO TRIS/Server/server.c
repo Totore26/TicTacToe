@@ -223,6 +223,7 @@ void *threadLobby(void *arg) {
             
         
             // CICLO CHE ATTENDE LA TERMINAZIONE DELLA PARTITA
+            // QUI DEVO GESTIRLA IN MODO IDENTICO A QUANDO CREO UNA PARTITA
 
             while (lobby.partita[partitaScelta].statoPartita != PARTITA_TERMINATA) {
                 sleep(1); // attendo che la partita termini
