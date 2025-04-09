@@ -54,7 +54,7 @@ void inizializza_socket()
 // Funzione per ottenere la mossa del client
 int get_valid_match(char *input) {
     while (1) {
-        printf("\nInserisci la tua mossa (0-9) [0-9]: ");
+        printf("\nScegli una partita disponibile oppure premi ""q"" per tornare al menù principale:  ");
         // Legge l'input dell'utente
         // Se fgets restituisce NULL, significa che c'è stato un errore o EOF
         // In tal caso, continua il ciclo per chiedere di nuovo l'input        
@@ -155,7 +155,14 @@ void funzione_crea_partita(){
     while (1)
     {
         //Quando ricevo MSG_SERVER_START allora il client inizia la partita da proprietario della lobby
-
+        sleep(1);
+        memset(buffer, 0, MAXLETTORE);
+        if (recv(sd, buffer, MAXLETTORE, 0) <= 0) {
+            printf("Connessione al server persa.\n");
+            exit(EXIT_FAILURE);
+        }
+        printf("Ricevo buffer\n");
+        printf("%s\n\n", buffer);
         if (strcmp(buffer, MSG_SERVER_START)==0){
             //Adesso ripulisco lo standard input
             gioca_partita(PROPRIETARIO);
@@ -178,8 +185,10 @@ void funzione_entra_partita(){
         printf("Connessione al server persa.\n");
         exit(EXIT_FAILURE);
     }
-    printf("Ricevo buffer\n");
-    printf("%s\n\n", buffer);
+
+    //Codice per Debug
+    //printf("Ricevo buffer\n");
+    //printf("%s\n\n", buffer);
 
 
     if (strcmp(buffer, MSG_NO_GAME)==0) {
@@ -195,6 +204,8 @@ void funzione_entra_partita(){
     while (1) {
         memset(input, 0, MAXSCRITTORE);  // Fixed buffer size
         if (get_valid_match(input)) {
+            printf("Ricevo buffer\n");
+            printf("%s\n\n", buffer);
             break; // Manda l'input valido e esce dal loop
         }
     }
@@ -216,6 +227,7 @@ void funzione_entra_partita(){
         exit(EXIT_FAILURE);
     }
 
+
     if(strstr(buffer, MSG_JOIN_ERROR)) {
         // Se il server ha restituito un errore, significa che la partita è piena o non esistente
         printf("Partita piena o non esistente. Torna al menu principale.\n");
@@ -223,6 +235,7 @@ void funzione_entra_partita(){
     }
 
     if(strstr(buffer, MSG_SERVER_START)) {
+
         gioca_partita(AVVERSARIO);  // Fixed function name
     }
 }
@@ -311,6 +324,12 @@ void gioca_partita(const enum tipo_giocatore tipo_giocatore) {
     char buffer[MAXLETTORE];
     char input[MAXSCRITTORE];
 
+
+
+
+    // Invia la mossa
+    while (1) {
+
     //Questa struttura gestisce i messaggi in arrivo dal server, gestendo la partita in modo differente tra Proprietario e Avversario
     // Ricevi messaggio dal server
     memset(buffer, 0, MAXLETTORE);
@@ -318,16 +337,41 @@ void gioca_partita(const enum tipo_giocatore tipo_giocatore) {
         printf("Connessione al server persa.\n");
         exit(EXIT_FAILURE);
     }
-    if (strstr(buffer, MSG_SERVER_BOARD)) {
-        // Mostra il messaggio ricevuto
+
+    // Codice per Debug
+    printf("Ricevo buffer\n");
+    printf("%s\n\n", buffer);
+
+    if (strcmp(buffer, MSG_SERVER_BOARD) == 0) {
+        memset(buffer, 0, MAXLETTORE);
+        if (recv(sd, buffer, MAXLETTORE, 0) <= 0) {
+            printf("Connessione al server persa.\n");
+            exit(EXIT_FAILURE);
+        }
+        // Mostra la board iniziale
         printf("%s", buffer);
     }
-    // Invia la mossa
-    while (1) {
+    if (strcmp(buffer, MSG_YOUR_TURN) == 0) {
+        printf("\nE' il tuo turno!\n");
         memset(input, 0, MAXSCRITTORE);  // Fixed buffer size
         if (get_valid_move(input)) {
             break; // Manda l'input valido e esce dal loop
         }
+    }
+
+    if (strcmp(buffer, MSG_OPPONENT_TURN) == 0) {
+        printf("Aspetta il turno dell'avversario...\n");
+        memset(buffer, 0, MAXLETTORE);
+        if (recv(sd, buffer, MAXLETTORE, 0) <= 0) {
+            printf("Connessione al server persa.\n");
+            exit(EXIT_FAILURE);
+        }
+        
+        continue;
+    }
+
+    
+
     }
 
     memset(buffer, 0, MAXLETTORE);

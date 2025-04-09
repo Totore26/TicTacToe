@@ -14,7 +14,7 @@ int main() {
             exit(EXIT_FAILURE);
         }
         printf("Messaggio ricevuto: %s\n", buffer);
-        for (int i = 0; i < 5; i++)
+        for (int i = 0; i < 3; i++)
         {
             printf("%d \n", i);
             sleep(1);

@@ -135,7 +135,13 @@ int *convertiMossa(int mossa) {
 
 // controlla se la mossa è valida
 int is_valid_move(char board[3][3], int row, int col) {
-    return (row >= 0 && row < SIZE && col >= 0 && col < SIZE && board[row][col] == ' ');
+    if (row < 0 || row >= SIZE || col < 0 || col >= SIZE) 
+        return 0; // mossa non valida
+
+    if (board[row][col] != ' ') 
+        return 0; // cella già occupata
+
+    return 1; // mossa valida
 }
 
 int eseguiMossa(char board[3][3], int row, int col, char player) {
@@ -144,18 +150,6 @@ int eseguiMossa(char board[3][3], int row, int col, char player) {
         return 1;
     }
     return 0;
-}
-
-// ora implemento is_valid_move(board, row, col)
-int is_valid_move(char board[3][3], int row, int col) {
-    
-    if (row < 0 || row >= SIZE || col < 0 || col >= SIZE) 
-        return 0; // mossa non valida
-
-    if (board[row][col] != ' ') 
-        return 0; // cella già occupata
-
-    return 1; // mossa valida
 }
 
 int switchGiocatore(int current) {

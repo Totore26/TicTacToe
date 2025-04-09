@@ -247,8 +247,8 @@ void *threadLobby(void *arg) {
 
 // Thread per gestire una partita
 void *threadPartita(void *arg) {
-  /*  Partita *partita = (Partita *)arg;
-    Giocatore giocatore[2] = { partita->giocatoreAdmin, partita->giocatoreGuest };
+    Partita *partita = (Partita *)arg;
+    Giocatore giocatore[2] = { partita->giocatoreAdmin, partita->giocatoreGuest};
     char buffer[1024];
     int giocatoreCorrente = 0;
     int giocatoreInAttesa = 1;
@@ -260,6 +260,13 @@ void *threadPartita(void *arg) {
 
     // ciclo di gioco che parla contemporaneamente con i due giocatori ( devo usare i mutex ) e ogni ciclo è un turno
     while (1) {
+
+        sprintf(buffer, MSG_SERVER_START);
+        if ( send(giocatore[giocatoreCorrente].socket, buffer, strlen(buffer), 0) < 0 || send(giocatore[giocatoreInAttesa].socket, buffer, strlen(buffer), 0) < 0 ) {
+            perror("[Partita] Errore nell'invio del messaggio per la griglia iniziale\n");
+            pthread_exit(NULL);
+        }
+        sleep(1); // attendo un secondo prima di inviare la griglia
 
         contatoreTurno++;
         simboloGiocatoreCorrente = (contatoreTurno % 2 == 0) ? 'X' : 'O';
@@ -391,33 +398,22 @@ void *threadPartita(void *arg) {
                     partita->Vincitore = -1;
                     partita->statoPartita = PARTITA_TERMINATA;
                     pthread_exit(NULL);
-                } else if ( strcmp( buffer, MSG_CLIENT_REMATCH ) == 0 ) { // il proprietario ha scelto di fare un rematch quindi informo il guest
-                    
-                    //chiedo il rematch al guest
-                    sprintf(buffer, MSG_CLIENT_REMATCH);
-                    if ( send(partita->giocatoreGuest.socket, buffer, strlen(buffer), 0) < 0 ) {
-                        perror("[Partita] Errore nell'invio del messaggio di rivincita al Guest\n");
+                } else if ( strcmp( buffer, MSG_CLIENT_REMATCH ) == 0 ) { // il proprietario ha scelto di fare un rematch
+                    // Notifico entrambi i giocatori del rematch
+                    sprintf(buffer, MSG_SERVER_START);
+                    if (send(giocatore[0].socket, buffer, strlen(buffer), 0) < 0 || 
+                        send(giocatore[1].socket, buffer, strlen(buffer), 0) < 0) {
+                        perror("[Partita] Errore nell'invio del messaggio di start rematch\n");
                         close(giocatore[0].socket);
                         close(giocatore[1].socket);
                         partita->statoPartita = PARTITA_TERMINATA;
                         pthread_exit(NULL);
                     }
-
-                    //attendo la risposta del guest
-                    memset(buffer, 0, sizeof(buffer));
-                    if ( recv(partita->giocatoreGuest.socket, buffer, sizeof(buffer), 0) <= 0 ) {
-                        perror("[Partita] Errore nella ricezione della risposta del guest\n");
-                        close(giocatore[0].socket);
-                        close(giocatore[1].socket);
-                        partita->statoPartita = PARTITA_TERMINATA;
-                        pthread_exit(NULL);
-                    }
-
-
-
-
                     
-                    break; // esco dal ciclo della partita
+                    // Reset game state for rematch
+                    inizializzazioneGriglia(partita);
+                    contatoreTurno = -1;
+                    continue; // Continua con il nuovo gioco
                 } else {
                     perror("[Partita] Errore, comando non valido\n");
                     close(giocatore[0].socket);
@@ -425,10 +421,6 @@ void *threadPartita(void *arg) {
                     partita->statoPartita = PARTITA_TERMINATA;
                     pthread_exit(NULL);
                 }
-
-
-
-            
             }
         }
 
@@ -462,9 +454,8 @@ void *threadPartita(void *arg) {
     close(giocatore[1].socket);
     partita->statoPartita = PARTITA_TERMINATA;
     pthread_exit(NULL);
-*/
-}
 
+}
 
 
 
