@@ -118,12 +118,55 @@ void funzione_menu() {
             close(sd);
             exit(EXIT_SUCCESS);
             } else {
-                printf("Scelta non valida. Riprova.\n");
+                printf("Scelta non valida. Riprova...\n");
                 sleep(1); // Aspetta 1 secondo prima di ripetere il menu
             }
     } // Close the while loop
 
 }
+
+
+void funzione_crea_partita(){
+    char buffer[MAXLETTORE];
+    char input[MAXSCRITTORE];
+
+    // Ricevi messaggio dal server
+    memset(buffer, 0, MAXLETTORE);
+    if (recv(sd, buffer, MAXLETTORE, 0) <= 0) {
+        printf("Connessione al server persa.\n");
+        exit(EXIT_FAILURE);
+    }
+
+
+    printf("Ricevo buffer\n");
+    printf("%s\n\n", buffer);
+
+    if (strcmp(buffer, MSG_SERVER_MAX_GAMES)== 0) {
+        // Se il server ha restituito "MSG_SERVER_MAX_GAMES", significa che sono state raggiunte le partite massime
+        printf("Massimo numero di partite raggiunto. Torna al menu principale.\n");
+        return;
+    }
+    if (strcmp(buffer, MSG_WAITING_PLAYER) == 0) {
+        // Se il server ha restituito "MSG_WAITING_PLAYER", significa che la partita è in attesa di un avversario
+        // Mostra il messaggio ricevuto
+        printf("Aspettando un avversario...\n");
+
+
+    while (1)
+    {
+        //Quando ricevo MSG_SERVER_START allora il client inizia la partita da proprietario della lobby
+
+        if (strcmp(buffer, MSG_SERVER_START)==0){
+            //Adesso ripulisco lo standard input
+            gioca_partita(PROPRIETARIO);
+            return;
+        }
+    }
+    }
+    
+
+}
+
 
 void funzione_entra_partita(){
     char buffer[MAXLETTORE];
@@ -184,46 +227,7 @@ void funzione_entra_partita(){
     }
 }
 
-void funzione_crea_partita(){
-    char buffer[MAXLETTORE];
-    char input[MAXSCRITTORE];
 
-    // Ricevi messaggio dal server
-    memset(buffer, 0, MAXLETTORE);
-    if (recv(sd, buffer, MAXLETTORE, 0) <= 0) {
-        printf("Connessione al server persa.\n");
-        exit(EXIT_FAILURE);
-    }
-
-
-    printf("Ricevo buffer\n");
-    printf("%s\n\n", buffer);
-
-    if (strcmp(buffer, MSG_SERVER_MAX_GAMES)== 0) {
-        // Se il server ha restituito "MSG_SERVER_MAX_GAMES", significa che sono state raggiunte le partite massime
-        printf("Massimo numero di partite raggiunto. Torna al menu principale.\n");
-        return;
-    }
-    if (strcmp(buffer, MSG_WAITING_PLAYER) == 0) {
-        // Se il server ha restituito "MSG_WAITING_PLAYER", significa che la partita è in attesa di un avversario
-        // Mostra il messaggio ricevuto
-        printf("Aspettando un avversario...\n");
-
-
-    while (1)
-    {
-        //Quando ricevo MSG_SERVER_START allora il client inizia la partita da proprietario della lobby
-
-        if (strcmp(buffer, MSG_SERVER_START)==0){
-            //Adesso ripulisco lo standard input
-            gioca_partita(PROPRIETARIO);
-            return;
-        }
-    }
-    }
-    
-
-}
 
 
 // ==========================================================
@@ -279,7 +283,7 @@ void play_again_menu(int socket_fd, int is_winner) {
         return;
     }
 
-    int choice = get_valid_menu_choice(1, 2);
+    int choice =1; // get_valid_menu_choice(1, 2);
     char choice_str[2];
     sprintf(choice_str, "%d", choice);
     send(socket_fd, choice_str, strlen(choice_str), 0);
@@ -326,25 +330,29 @@ void gioca_partita(const enum tipo_giocatore tipo_giocatore) {
         }
     }
 
-    if (tipo_giocatore ==  PROPRIETARIO){
-
-    }else{
+    memset(buffer, 0, MAXLETTORE);
+    if (recv(sd, buffer, MAXLETTORE, 0) <= 0) {
+        printf("Connessione al server persa.\n");
+        exit(EXIT_FAILURE);
+    }
+    if (strstr(buffer, MSG_SERVER_WIN)) {
+        // Mostra il messaggio ricevuto
+        printf("%s", buffer);
+        play_again_menu(sd, 1); // Passa 1 per indicare che hai vinto
+    } else if (strstr(buffer, MSG_SERVER_LOSE)) {
+        // Mostra il messaggio ricevuto
+        printf("%s", buffer);
+        play_again_menu(sd, 0); // Passa 0 per indicare che hai perso
+    } else if (strstr(buffer, MSG_SERVER_DRAW)) {
+        // Mostra il messaggio ricevuto
+        printf("%s", buffer);
+        play_again_menu(sd, 0); // Passa 0 per indicare che hai perso
+    } else if (strstr(buffer, MSG_SERVER_OPPONENT_LEFT)) {
+        // Mostra il messaggio ricevuto
+        printf("%s", buffer);
+        play_again_menu(sd, 0); // Passa 0 per indicare che hai perso
 
     }
 
-}
 
-// Add this new function
-int get_valid_menu_choice(int min, int max) {
-    int choice;
-    char input[MAXSCRITTORE];
-    
-    while (1) {
-        if (fgets(input, MAXSCRITTORE, stdin) != NULL) {
-            if (sscanf(input, "%d", &choice) == 1 && choice >= min && choice <= max) {
-                return choice;
-            }
-        }
-        printf("Scelta non valida. Inserisci un numero tra %d e %d: ", min, max);
-    }
 }

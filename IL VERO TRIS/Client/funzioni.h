@@ -31,7 +31,6 @@ void play_again_menu(int socket_fd, int is_winner);
 
 //funzione che gestisce la partita tra 2 giocatori, incluse eventuali rivincite
 void gioca_partita(const enum tipo_giocatore tipo_giocatore);
-int get_valid_menu_choice(int min, int max);
 
 //aggiorna la griglia di gioco e il numero giocate, invia la giocata e l'esito della partita al server, restituisce l'esito
 char invia_giocata(unsigned short int *n_giocate);
