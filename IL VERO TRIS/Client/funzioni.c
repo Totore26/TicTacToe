@@ -251,35 +251,23 @@ void funzione_entra_partita(){
 
 // Funzione per ottenere la mossa del client
 int get_valid_move(char *input) {
-    int row, col;
-    while (1) {
-        printf("\nInserisci la tua mossa (riga,colonna) [0,2]: ");
-
-        if (fgets(input, MAXSCRITTORE, stdin) == NULL) {
-            continue;
-        }
-
-        // Rimuove i caratteri di nuova linea (\n o \r\n) se presenti
-        input[strcspn(input, "\r\n")] = 0;
-
-        // Se l'input è vuoto, invia "1" al server per chiedere il tabellone
-        if (strlen(input) == 0) {
-            strcpy(input, "1"); // Imposta "1" per il tabellone
-            return 0; // Ritorna 0 per segnalare che è stato premuto INVIO
-        }
-
-        // Se il formato non è valido (non è riga,colonna), chiedi di nuovo
-        if (sscanf(input, "%d,%d", &row, &col) != 2) {
-            printf("\nFormato non valido! Usa: numero,numero\n");
-            continue;
-        }
-
-        if (row < 0 || row > 2 || col < 0 || col > 2) {
-            printf("\nPosizione non valida! Usa numeri tra 0 e 2\n");
-            continue;
-        }
-
+    // Inizializza il buffer 
+    memset(input, 0, MAXSCRITTORE);  // Fixed buffer size
+    printf("Inserisci la tua mossa (1-9): ");
+    // Legge l'input dell'utente
+    // Se fgets restituisce NULL, significa che c'è stato un errore o EOF
+    // In tal caso, continua il ciclo per chiedere di nuovo l'input
+    if (fgets(input, MAXSCRITTORE, stdin) == NULL) {
+        return 0; // Input non valido
+    }
+    // Rimuove i caratteri di nuova linea (\n o \r\n) se presenti
+    input[strcspn(input, "\r\n")] = 0;
+    // Controlla se l'input è un numero valido tra 1 e 9
+    if (isdigit(input[0]) && strlen(input) == 1 && input[0] >= '1' && input[0] <= '9') {
         return 1; // Input valido
+    } else {
+        printf("Formato non valido! Usa: numero tra 1 e 9\n");
+        return 0; // Input non valido
     }
 }
 
@@ -337,7 +325,6 @@ void gioca_partita(const enum tipo_giocatore tipo_giocatore) {
         printf("Connessione al server persa.\n");
         exit(EXIT_FAILURE);
     }
-    CLEAR_SCREEN();
 
     // Codice per Debug
     printf("Ricevo buffer\n");
@@ -350,16 +337,40 @@ void gioca_partita(const enum tipo_giocatore tipo_giocatore) {
             exit(EXIT_FAILURE);
         }
         // Mostra la board iniziale
+        CLEAR_SCREEN();
         printf("%s", buffer);
-    }
+    } 
+    
     if (strcmp(buffer, MSG_YOUR_TURN) == 0) {
-        printf("\nE' il tuo turno!\n");
-        memset(input, 0, MAXSCRITTORE);  // Fixed buffer size
-        if (get_valid_move(input)) {
-            break; // Manda l'input valido e esce dal loop
+        // Mostra il messaggio ricevuto
+        printf("%s", buffer);
+        // Invia la mossa
+        while (1) {
+            memset(input, 0, MAXSCRITTORE);  // Fixed buffer size
+            if (get_valid_move(input)) {
+                // Invia la scelta al server
+                send(sd, input, strlen(input), 0);
+                break; // Manda l'input valido e esce dal loop
+            }
         }
     }
 
+    if (strcmp(buffer, MSG_INVALID_MOVE) == 0) {
+        // Mostra il messaggio ricevuto
+        printf("Hai inserito una mossa non valida. Riprova.\n");
+        // Invia la mossa
+        while (1) {
+            memset(input, 0, MAXSCRITTORE);  // Fixed buffer size
+            if (get_valid_move(input)) {
+                // Invia la scelta al server
+                send(sd, input, strlen(input), 0);
+                break; // Manda l'input valido e esce dal loop
+            }
+        }
+    }
+
+    
+    
     if (strcmp(buffer, MSG_OPPONENT_TURN) == 0) {
         printf("Aspetta il turno dell'avversario...\n");
         memset(buffer, 0, MAXLETTORE);
