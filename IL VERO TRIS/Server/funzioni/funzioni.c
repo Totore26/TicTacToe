@@ -133,6 +133,11 @@ int *convertiMossa(int mossa) {
     return coordinate;
 }
 
+// controlla se la mossa è valida
+int is_valid_move(char board[3][3], int row, int col) {
+    return (row >= 0 && row < SIZE && col >= 0 && col < SIZE && board[row][col] == ' ');
+}
+
 int eseguiMossa(char board[3][3], int row, int col, char player) {
     if (is_valid_move(board, row, col)) {
         board[row][col] = player;

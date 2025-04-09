@@ -128,7 +128,7 @@ void *threadLobby(void *arg) {
             }
             // inizializzo la partita
             partita->giocatoreAdmin = *giocatore;
-            partita->statoPartita = PARTITA_IN_CORSO;
+            partita->statoPartita = PARTITA_IN_ATTESA;
             partita->turnoCorrente = 0; // il primo turno è del giocatore admin
             pthread_mutex_init(&partita->partitaMutex, NULL);
             
@@ -167,6 +167,7 @@ void *threadLobby(void *arg) {
                     perror("[Lobby] Errore nell'invio del messaggio di partite non disponibili\n");
                     break;
                 }
+                sleep(1); // attendo un secondo prima di ripetere il ciclo
                 continue;
             } else { // altrimenti invio la lista delle partite disponibili
 
@@ -246,7 +247,7 @@ void *threadLobby(void *arg) {
 
 // Thread per gestire una partita
 void *threadPartita(void *arg) {
-    Partita *partita = (Partita *)arg;
+  /*  Partita *partita = (Partita *)arg;
     Giocatore giocatore[2] = { partita->giocatoreAdmin, partita->giocatoreGuest };
     char buffer[1024];
     int giocatoreCorrente = 0;
@@ -418,6 +419,7 @@ void *threadPartita(void *arg) {
     close(giocatore[1].socket);
     partita->statoPartita = PARTITA_TERMINATA;
     pthread_exit(NULL);
+*/
 }
 
 
