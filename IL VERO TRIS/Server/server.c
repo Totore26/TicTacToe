@@ -271,7 +271,7 @@ void *threadPartita(void *arg) {
             pthread_exit(NULL);
         }
 
-        *griglia = grigliaFormattata(partita->Griglia, simboloGiocatoreCorrente);
+        griglia = grigliaFormattata(partita->Griglia, simboloGiocatoreCorrente);
         if ( send(giocatore[giocatoreCorrente].socket, griglia, strlen(griglia), 0) < 0 ) {
             perror("[Partita] Errore nell'invio della griglia iniziale\n");
             pthread_exit(NULL);
