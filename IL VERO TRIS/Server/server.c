@@ -238,6 +238,7 @@ void *threadLobby(void *arg) {
                 //se il giocatore ha vinto
                 if (giocatore->socket == lobby.partita[partitaScelta].Vincitore) { 
                     
+                    sleep(1); // attendo un secondo prima di inviare il messaggio
                     // chiedo se vuole giocare ancora 
                     sprintf(buffer, MSG_SERVER_REMATCH);
                     if ( send(giocatore->socket, buffer, strlen(buffer), 0) < 0 ) {

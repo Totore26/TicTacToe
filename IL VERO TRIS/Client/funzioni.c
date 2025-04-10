@@ -285,13 +285,15 @@ void play_again_menu() {
     printf("\n=== Partita Terminata ===\n");
         printf("1. Gioca ancora\n");
         printf("2. Esci\n");
-
-    if (fgets(input, MAXSCRITTORE, stdin) == NULL) {
-        return 0; // Input non valido
-    }
-    
+        printf("========================\n");
+    printf("Scegli un'opzione: ");
     // Inizializza il buffer
-    memset(input, 0, MAXSCRITTORE);
+    memset(input, 0, MAXSCRITTORE);  // Fixed buffer size
+    if (fgets(input, MAXSCRITTORE, stdin) == NULL) {
+        printf("Errore nella lettura dell'input.\n");
+        return; // Input non valido
+    }
+
     // Rimuove i caratteri di nuova linea (\n o \r\n) se presenti
     input[strcspn(input, "\r\n")] = 0;
 
@@ -392,13 +394,28 @@ void gioca_partita(const enum tipo_giocatore tipo_giocatore) {
     }
 
     
-    if (strstr(buffer, MSG_SERVER_WIN)) {
-        // Mostra il messaggio ricevuto
+    if (strcmp(buffer, MSG_SERVER_WIN)==0) {
         printf("%s\n", buffer);
         printf("Hai vinto!\n");
-        sleep(1); // Aspetta 1 secondo prima di mostrare il messaggio di vittoria
-        play_again_menu();
-    } else if (strstr(buffer, MSG_SERVER_LOSE)) {
+        // Mostra il messaggio ricevuto
+        memset(buffer, 0, MAXLETTORE);
+        if (recv(sd, buffer, MAXLETTORE, 0) <= 0) {
+            printf("Connessione al server persa.\n");
+            exit(EXIT_FAILURE);
+        }
+
+        printf("%s\n", buffer);
+
+        //Controllo che il messaggio ricevuto sia quello giusto
+        if (strcmp(buffer, MSG_SERVER_REMATCH) == 0) {
+            
+            sleep(1); // Aspetta 1 secondo prima di mostrare il messaggio di vittoria
+            play_again_menu();
+        }else {
+            printf("Puerco de dios");
+        }
+
+    } else if (strcmp(buffer, MSG_SERVER_LOSE)==0) {
         // Mostra il messaggio ricevuto
         printf("%s\n", buffer);
         return;
@@ -439,7 +456,7 @@ void gioca_partita(const enum tipo_giocatore tipo_giocatore) {
 
         }
         
-    } else if (strstr(buffer, MSG_SERVER_OPPONENT_LEFT)) {
+    } else if (strcmp(buffer, MSG_SERVER_OPPONENT_LEFT)==0) {
         // Mostra il messaggio ricevuto
         printf("%s\n", buffer);
         printf("L'avversario si è disconnesso... Hai vinto!\n");
