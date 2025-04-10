@@ -487,6 +487,7 @@ void *threadPartita(void *arg) {
                         giocatoreCorrente = 0;
                         giocatoreInAttesa = 1;
                         contatoreTurno = -1;
+                        sleep(1); // attendo un secondo prima di ricominciare la partita
                         continue; // ricomincia la partita
                     }
 
@@ -541,6 +542,7 @@ void *threadPartita(void *arg) {
     pthread_exit(NULL);
     
 }
+
 
 
 
