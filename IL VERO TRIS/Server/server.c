@@ -265,8 +265,10 @@ void *threadLobby(void *arg) {
                         }
                         //devo attendere di nuovo che la partita termini
                         continue;
-                    } 
-                    break; // il vincitore non vuole fare rematch lo porto al menu
+                    } else {
+                        if ( strcmp( buffer, MSG_CLIENT_QUIT ) == 0 )
+                            break; // il vincitore non vuole fare rematch lo porto al menu
+                    }
                 } 
                 break; // se ha perso va direttamente al menu
             }
