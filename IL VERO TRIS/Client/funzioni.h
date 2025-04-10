@@ -27,7 +27,7 @@ void funzione_crea_partita();
 void funzione_entra_partita();
 int get_valid_move(char *input);
 int get_valid_match(char *input);
-void play_again_menu(int socket_fd, int is_winner);
+void play_again_menu();
 
 //funzione che gestisce la partita tra 2 giocatori, incluse eventuali rivincite
 void gioca_partita(const enum tipo_giocatore tipo_giocatore);

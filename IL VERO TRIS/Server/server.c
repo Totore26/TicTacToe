@@ -302,20 +302,20 @@ void *threadPartita(void *arg) {
     char *griglia;
     inizializzazioneGriglia(partita);
 
+         // avviso e invio a entrambi la griglia aggiornata
+        sprintf(buffer, MSG_SERVER_START);
+        if ( send(giocatore[giocatoreCorrente].socket, buffer, strlen(buffer), 0) < 0 || send(giocatore[giocatoreInAttesa].socket, buffer, strlen(buffer), 0) < 0 ) {
+             perror("[Partita] Errore nell'invio del messaggio per la griglia iniziale\n");
+            pthread_exit(NULL);
+        }
+        sleep(1);
+
     // ciclo di gioco che parla contemporaneamente con i due giocatori ( devo usare i mutex ) e ogni ciclo è un turno
     while (1) {
 
         contatoreTurno++;
         simboloGiocatoreCorrente = (contatoreTurno % 2 == 0) ? 'X' : 'O';
-        simboloGiocatoreInAttesa = ( contatoreTurno % 2 == 0) ? 'O' : 'X';
-
-        // avviso e invio a entrambi la griglia aggiornata
-        sprintf(buffer, MSG_SERVER_START);
-        if ( send(giocatore[giocatoreCorrente].socket, buffer, strlen(buffer), 0) < 0 || send(giocatore[giocatoreInAttesa].socket, buffer, strlen(buffer), 0) < 0 ) {
-            perror("[Partita] Errore nell'invio del messaggio per la griglia iniziale\n");
-            pthread_exit(NULL);
-        }
-        sleep(1); 
+        simboloGiocatoreInAttesa = ( contatoreTurno % 2 == 0) ? 'O' : 'X'; 
         
 
 
@@ -325,6 +325,7 @@ void *threadPartita(void *arg) {
             perror("[Partita] Errore nell'invio del messaggio per la griglia iniziale\n");
             pthread_exit(NULL);
         }
+        sleep(1); // attendo un secondo prima di inviare la griglia
 
         griglia = grigliaFormattata(partita->Griglia, simboloGiocatoreCorrente);
         if ( send(giocatore[giocatoreCorrente].socket, griglia, strlen(griglia), 0) < 0 ) {
@@ -336,7 +337,7 @@ void *threadPartita(void *arg) {
             perror("[Partita] Errore nell'invio della griglia iniziale\n");
             pthread_exit(NULL);
         }
-
+        sleep(1); // attendo un secondo prima di inviare il messaggio del turno
         // invio il messaggio del turno ai giocatori ( inizia sempre il proprietario cioe X )
         sprintf( buffer, MSG_YOUR_TURN );
         if ( send(giocatore[giocatoreCorrente].socket, buffer, strlen(buffer), 0) < 0 ) {
@@ -527,6 +528,8 @@ void *threadPartita(void *arg) {
                 partita->statoPartita = PARTITA_TERMINATA;
                 pthread_exit(NULL);
             }
+            
+            sleep(1); // attendo un secondo prima di chiedere il rematch
             //il vincitore potra scegliere se fare un altra partita nel thread della lobby 
             partita->statoPartita = PARTITA_TERMINATA;
             pthread_exit(NULL);
