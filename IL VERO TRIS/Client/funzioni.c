@@ -138,7 +138,7 @@ void funzione_crea_partita(){
     }
 
 
-    printf("Ricevo buffer\n");
+    printf("[Debug]Ricevo buffer\n");
     printf("%s\n\n", buffer);
 
     if (strcmp(buffer, MSG_SERVER_MAX_GAMES)== 0) {
@@ -161,7 +161,7 @@ void funzione_crea_partita(){
             printf("Connessione al server persa.\n");
             exit(EXIT_FAILURE);
         }
-        printf("Ricevo buffer\n");
+        printf("[Debug]Ricevo buffer\n");
         printf("%s\n\n", buffer);
         if (strcmp(buffer, MSG_SERVER_START)==0){
             //Adesso ripulisco lo standard input
@@ -179,65 +179,71 @@ void funzione_entra_partita(){
     char buffer[MAXLETTORE];
     char input[MAXSCRITTORE];
 
-    // Ricevi messaggio dal server
-    memset(buffer, 0, MAXLETTORE);
-    if (recv(sd, buffer, MAXLETTORE, 0) <= 0) {
-        printf("Connessione al server persa.\n");
-        exit(EXIT_FAILURE);
-    }
 
-    //Codice per Debug
-    //printf("Ricevo buffer\n");
-    //printf("%s\n\n", buffer);
+    while (1)
+    {
+         // Ricevi messaggio dal server
+        memset(buffer, 0, MAXLETTORE);
+        if (recv(sd, buffer, MAXLETTORE, 0) <= 0) {
+            printf("Connessione al server persa.\n");
+            exit(EXIT_FAILURE);
+        }
+
+        //Codice per Debug
+        printf("[Debug] Ricevo buffer\n");
+        printf("%s\n\n", buffer);
 
 
-    if (strcmp(buffer, MSG_NO_GAME)==0) {
-        // Se il server ha restituito "MSG_NO_GAME", significa che non ci sono partite disponibili
-        printf("Nessuna partita disponibile. Torna al menu principale.\n");
-        return;
-    }else{
-        // Mostra il messaggio ricevuto
-        printf("%s", buffer);
-    }
+        if (strcmp(buffer, MSG_NO_GAME)==0) {
+            // Se il server ha restituito "MSG_NO_GAME", significa che non ci sono partite disponibili
+            printf("Nessuna partita disponibile. Torna al menu principale.\n");
+            return;
+        }else{
+            // Mostra il messaggio ricevuto
+            printf("%s", buffer);
+        }
 
-    // Invia la mossa
-    while (1) {
-        memset(input, 0, MAXSCRITTORE);  // Fixed buffer size
-        if (get_valid_match(input)) {
-            printf("Ricevo buffer\n");
-            printf("%s\n\n", buffer);
-            break; // Manda l'input valido e esce dal loop
+        // Invia la mossa
+        while (1) {
+            memset(input, 0, MAXSCRITTORE);  // Fixed buffer size
+            if (get_valid_match(input)) {
+                printf("Ricevo buffer\n");
+                printf("%s\n\n", buffer);
+                break; // Manda l'input valido e esce dal loop
+            }
+        }
+
+
+        if(strstr(input, "q") || strstr(input, "Q")){
+            // Invia richiesta di uscita
+            send(sd, MSG_CLIENT_QUIT, strlen(MSG_CLIENT_QUIT), 0);
+            return;
+        }else{
+            // Invia la scelta al server
+            send(sd, input, strlen(input), 0);
+        }
+
+        // Ricevi messaggio dal server
+        memset(buffer, 0, MAXLETTORE);
+        if (recv(sd, buffer, MAXLETTORE, 0) <= 0) {
+            printf("Connessione al server persa.\n");
+            exit(EXIT_FAILURE);
+        }
+
+
+        if(strstr(buffer, MSG_JOIN_ERROR)) {
+            // Se il server ha restituito un errore, significa che la partita è piena o non esistente
+            printf("Partita piena o non esistente. Torna al menu principale.\n");
+            return;
+        }
+
+        if(strstr(buffer, MSG_SERVER_START)) {
+
+            gioca_partita(AVVERSARIO);  // Fixed function name
         }
     }
+    
 
-
-    if(strstr(input, "q") || strstr(input, "Q")){
-        // Invia richiesta di uscita
-        send(sd, MSG_CLIENT_QUIT, strlen(MSG_CLIENT_QUIT), 0);
-        return;
-    }else{
-        // Invia la scelta al server
-        send(sd, input, strlen(input), 0);
-    }
-
-    // Ricevi messaggio dal server
-    memset(buffer, 0, MAXLETTORE);
-    if (recv(sd, buffer, MAXLETTORE, 0) <= 0) {
-        printf("Connessione al server persa.\n");
-        exit(EXIT_FAILURE);
-    }
-
-
-    if(strstr(buffer, MSG_JOIN_ERROR)) {
-        // Se il server ha restituito un errore, significa che la partita è piena o non esistente
-        printf("Partita piena o non esistente. Torna al menu principale.\n");
-        return;
-    }
-
-    if(strstr(buffer, MSG_SERVER_START)) {
-
-        gioca_partita(AVVERSARIO);  // Fixed function name
-    }
 }
 
 

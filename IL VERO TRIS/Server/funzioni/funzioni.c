@@ -1,6 +1,8 @@
 #include "../strutture.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+#include <sys/socket.h>
 #include "../../Comunicazione.h"
 
 extern Lobby lobby;
