@@ -308,6 +308,16 @@ void *threadPartita(void *arg) {
         simboloGiocatoreInAttesa = ( contatoreTurno % 2 == 0) ? 'O' : 'X';
 
         // avviso e invio a entrambi la griglia aggiornata
+        sprintf(buffer, MSG_SERVER_START);
+        if ( send(giocatore[giocatoreCorrente].socket, buffer, strlen(buffer), 0) < 0 || send(giocatore[giocatoreInAttesa].socket, buffer, strlen(buffer), 0) < 0 ) {
+            perror("[Partita] Errore nell'invio del messaggio per la griglia iniziale\n");
+            pthread_exit(NULL);
+        }
+        sleep(1); 
+        
+
+
+        // avviso e invio a entrambi la griglia aggiornata
         sprintf(buffer, MSG_SERVER_BOARD);
         if ( send(giocatore[giocatoreCorrente].socket, buffer, strlen(buffer), 0) < 0 || send(giocatore[giocatoreInAttesa].socket, buffer, strlen(buffer), 0) < 0 ) {
             perror("[Partita] Errore nell'invio del messaggio per la griglia iniziale\n");
