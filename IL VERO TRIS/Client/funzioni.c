@@ -5,7 +5,7 @@
 
 
 // ==========================================================
-//  FUNZIONI PER CONNESSIONE CON IL SERVER  
+//  FUNZIONE PER CONNESSIONE CON IL SERVER  
 // ==========================================================
 
 
@@ -46,36 +46,8 @@ void inizializza_socket()
 
 
 // ==========================================================
-//  FUNZIONI PER GESTIRE IL MENU 
+//  FUNZIONE PER GESTIRE IL MENU 
 // ==========================================================
-
-
-
-// Funzione per ottenere la mossa del client
-int get_valid_match(char *input) {
-    while (1) {
-        printf("\nScegli una partita disponibile oppure premi ""q"" per tornare al menù principale:\n");
-        // Legge l'input dell'utente
-        // Se fgets restituisce NULL, significa che c'è stato un errore o EOF
-        // In tal caso, continua il ciclo per chiedere di nuovo l'input        
-        if (fgets(input, MAXSCRITTORE, stdin) == NULL) {
-            continue;
-        }
-
-        // Rimuove i caratteri di nuova linea (\n o \r\n) se presenti
-        input[strcspn(input, "\r\n")] = 0;
-
-
-        if (strcmp(input, "0") == 0 || strcmp(input, "1") == 0 || strcmp(input, "2") == 0 || strcmp(input, "3") == 0 || strcmp(input, "4") == 0 || strcmp(input, "5") == 0 || strcmp(input, "6") == 0 || strcmp(input, "7") == 0 || strcmp(input, "8") == 0 || strcmp(input, "9") == 0 
-           || strcmp(input, "Q") == 0 || strcmp(input, "q") == 0) {
-            return 1; // Input valido
-        }
-        printf("\nFormato non valido! Usa: numero tra 0 e 9 oppure 'q' per tornare al menu\n");
-        return 0;
-
-    }
-}
-
 
 void funzione_menu() {
     char buffer[MAXLETTORE];
@@ -124,6 +96,10 @@ void funzione_menu() {
     } // Close the while loop
 
 }
+
+// ==========================================================
+//  FUNZIONE PER GESTIRE LA CREAZIONE DELLA PARTITA
+// ==========================================================
 
 
 void funzione_crea_partita(){
@@ -174,6 +150,40 @@ void funzione_crea_partita(){
 
 }
 
+
+// ==========================================================
+//  FUNZIONE PER LA SCELTA DELLA PARTITA 
+// ==========================================================
+
+
+// Funzione per ottenere la mossa del client
+int get_valid_match(char *input) {
+    while (1) {
+        printf("\nScegli una partita disponibile oppure premi ""q"" per tornare al menù principale:\n");
+        // Legge l'input dell'utente
+        // Se fgets restituisce NULL, significa che c'è stato un errore o EOF
+        // In tal caso, continua il ciclo per chiedere di nuovo l'input        
+        if (fgets(input, MAXSCRITTORE, stdin) == NULL) {
+            continue;
+        }
+
+        // Rimuove i caratteri di nuova linea (\n o \r\n) se presenti
+        input[strcspn(input, "\r\n")] = 0;
+
+
+        if (strcmp(input, "0") == 0 || strcmp(input, "1") == 0 || strcmp(input, "2") == 0 || strcmp(input, "3") == 0 || strcmp(input, "4") == 0 || strcmp(input, "5") == 0 || strcmp(input, "6") == 0 || strcmp(input, "7") == 0 || strcmp(input, "8") == 0 || strcmp(input, "9") == 0 
+           || strcmp(input, "Q") == 0 || strcmp(input, "q") == 0) {
+            return 1; // Input valido
+        }
+        printf("\nFormato non valido! Usa: numero tra 0 e 9 oppure 'q' per tornare al menu\n");
+        return 0;
+
+    }
+}
+
+// ==========================================================
+//  FUNZIONE PER L'ENTRATA IN PARTITA
+// ==========================================================
 
 void funzione_entra_partita(){
     char buffer[MAXLETTORE];
@@ -248,10 +258,8 @@ void funzione_entra_partita(){
 }
 
 
-
-
 // ==========================================================
-//  FUNZIONI PER GESTIRE LA PARTITA
+//  FUNZIONE PER OTTENERE LA MOSSA DEL CLIENT DURANTE LA PARTITA
 // ==========================================================
 
 
@@ -278,6 +286,9 @@ int get_valid_move(char *input) {
     }
 }
 
+// ==========================================================
+//  MENU PER RICHIEDERE UNA RIVINCITA (SOLO IN CASO DI VITTORIA O SCONFITTA)
+// ==========================================================
 
 void play_again_menu() {
     char input[MAXSCRITTORE];
@@ -328,6 +339,9 @@ void play_again_menu() {
     
 }
 
+// ==========================================================
+//  MENU PER RICHIEDERE UNA RIVINCITA (SOLO IN CASO DI PAREGGIO)
+// ==========================================================
 
 
 void play_again_menu_draw() {
@@ -379,6 +393,9 @@ void play_again_menu_draw() {
     
 }
 
+// ==========================================================
+// FUNZIONE PER GESTIRE LA PARTITA
+// ==========================================================
 
 void gioca_partita(const enum tipo_giocatore tipo_giocatore) {
     char buffer[MAXLETTORE];
