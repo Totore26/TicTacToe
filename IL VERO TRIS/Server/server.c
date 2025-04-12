@@ -110,18 +110,56 @@ void *threadLobby(void *arg) {
         // il giocatore ha scelto di creare una partita 
         if ( strcmp( buffer, MSG_CLIENT_CREAATE ) == 0 ) { 
             
-            Partita *partita = creaPartita(giocatore); // creo una nuova partita
+            //controllo di non aver raggiunto il numero massimo di partite (se raggiunte torna 1)
+    if (MaxPartiteRaggiunte()) {
+        perror("[Lobby] Errore, numero massimo di partite raggiunto, informo il client\n");
+        sprintf(buffer, MSG_SERVER_MAX_GAMES);
+        if ( send(giocatore->socket, buffer, strlen(buffer), 0) < 0 ) {
+            perror("[Lobby] Errore nell'invio del messaggio di errore\n");
+        }
+        return NULL;
+    }
+    
+    // creo la partita
+    Partita *partita = malloc(sizeof(Partita));
+    if (partita == NULL) {
+        perror("[Lobby] Errore nell'allocazione della memoria per la partita\n");
+        return NULL;
+    }
+    // inizializzo la partita
+    partita->giocatoreAdmin = *giocatore;
+    partita->statoPartita = PARTITA_IN_ATTESA;
+    
+    // aggiungo alla lobby la nuova partita
+    int nuovoId = generazioneIdPartita();
+    if (nuovoId == -1) {
+        perror("[Lobby] Errore nella generazione dell'id della partita\n");
+        partita->statoPartita = PARTITA_TERMINATA;
+        return NULL;
+    }
+
+    pthread_mutex_lock(&lobby.lobbyMutex);
+    lobby.partita[nuovoId] = *partita; 
+    pthread_mutex_unlock(&lobby.lobbyMutex);
+
+    // invio il messaggio di attesa al giocatore admin
+    sprintf(buffer, MSG_WAITING_PLAYER);
+    if ( send(giocatore->socket, buffer, strlen(buffer), 0) < 0 ) {
+        perror("[Lobby] Errore nell'invio del messaggio di attesa secondo giocatore\n");
+        return NULL;
+    }
+
 
             //ciclo per gestire il rematch
             while(1) {
 
                 //CICLO IN ATTESA DI TERMINAZIONE PARTITA
-                while(partita->statoPartita != PARTITA_TERMINATA){
+                while(lobby.partita[nuovoId].statoPartita != PARTITA_TERMINATA){
                     sleep(1); 
                 }
 
                 //se il giocatore ha vinto
-                if (giocatore->socket == partita->Vincitore) { 
+                if (giocatore->socket == lobby.partita[nuovoId].Vincitore) { 
                     
                     // chiedo se vuole giocare ancora 
                     sprintf(buffer, MSG_SERVER_REMATCH);
@@ -485,6 +523,14 @@ void *threadPartita(void *arg) {
                         pthread_exit(NULL);
 
                     } else if (strcmp(buffer, MSG_CLIENT_REMATCH) == 0) { // il guest ha scelto di fare un rematch quindi ricomincia la partita corrente
+                        sprintf(buffer, MSG_SERVER_REMATCH);
+                        if ( send(partita->giocatoreAdmin.socket, buffer, strlen(buffer), 0) < 0 ) {
+                            perror("[Partita] Errore nell'invio del messaggio di abbandono del guest\n");
+                            close(giocatore[0].socket);
+                            close(giocatore[1].socket);
+                            partita->statoPartita = PARTITA_TERMINATA;
+                            pthread_exit(NULL);
+                        }
                         inizializzazioneGriglia(partita);
                         giocatoreCorrente = 0;
                         giocatoreInAttesa = 1;

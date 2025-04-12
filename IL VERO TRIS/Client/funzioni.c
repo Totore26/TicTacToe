@@ -328,6 +328,58 @@ void play_again_menu() {
     
 }
 
+
+
+void play_again_menu_draw() {
+    char input[MAXSCRITTORE];
+    CLEAR_SCREEN();
+    printf("\n=== Partita Terminata ===\n");
+        printf("1. Gioca ancora\n");
+        printf("2. Esci\n");
+        printf("========================\n");
+    printf("Scegli un'opzione: ");
+    // Inizializza il buffer
+    memset(input, 0, MAXSCRITTORE);  // Fixed buffer size
+    if (fgets(input, MAXSCRITTORE, stdin) == NULL) {
+        printf("Errore nella lettura dell'input.\n");
+        return; // Input non valido
+    }
+
+    // Rimuove i caratteri di nuova linea (\n o \r\n) se presenti
+    input[strcspn(input, "\r\n")] = 0;
+
+    //Controlla se l'input è valido
+    if (strcmp(input, "1") == 0) {
+        // Invia richiesta di rivincita
+        send(sd , MSG_CLIENT_REMATCH, strlen(MSG_CLIENT_REMATCH), 0);
+        // Inizia una nuova partita
+        return; // Non serve chiamare gioca_partita qui, perché la partita è già in corso
+    } else if (strcmp(input, "2") == 0) {
+        //torna al menu principale
+        send(sd, MSG_CLIENT_QUIT, strlen(MSG_CLIENT_QUIT), 0);
+        //ritorna al menu principale
+        //controll che ricevo MSG_SERVER_MENU
+        memset(input, 0, MAXSCRITTORE);
+        if (recv(sd, input, MAXSCRITTORE, 0) <= 0) {
+            printf("Connessione al server persa.\n");
+            exit(EXIT_FAILURE);
+        }
+        //Controllo che il messaggio ricevuto sia quello giusto
+        if (strcmp(input, MSG_SERVER_MENU) != 0) {
+            printf("Errore nel ritorno al menu principale.\n");
+            exit(EXIT_FAILURE);
+        }
+        // Mostra il messaggio ricevuto
+        printf("%s", input);
+        funzione_menu();
+    } else {
+        printf("Scelta non valida. Riprova...\n");
+        sleep(1); // Aspetta 1 secondo prima di ripetere il menu
+    }
+    
+}
+
+
 void gioca_partita(const enum tipo_giocatore tipo_giocatore) {
     char buffer[MAXLETTORE];
     char input[MAXSCRITTORE];
@@ -411,8 +463,6 @@ void gioca_partita(const enum tipo_giocatore tipo_giocatore) {
             
             sleep(1); // Aspetta 1 secondo prima di mostrare il messaggio di vittoria
             play_again_menu();
-        }else {
-            printf("Puerco de dios");
         }
 
     } else if (strcmp(buffer, MSG_SERVER_LOSE)==0) {
@@ -420,10 +470,10 @@ void gioca_partita(const enum tipo_giocatore tipo_giocatore) {
         printf("%s\n", buffer);
         return;
     } else if (strstr(buffer, MSG_SERVER_DRAW)) {
-        // Mostra il messaggio ricevuto// Mostra il messaggio ricevuto
+        // Mostra il messaggio ricevuto
         printf("%s\n", buffer);
 
-        if(tipo_giocatore == PROPRIETARIO){
+        if(tipo_giocatore == PROPRIETARIO) {
             printf("Hai pareggiato!\n");
             //Controllo se ricevo MSG_SERVER_REMATCH
             memset(buffer, 0, MAXLETTORE);
@@ -436,10 +486,30 @@ void gioca_partita(const enum tipo_giocatore tipo_giocatore) {
                 // Mostra il messaggio ricevuto
                 printf("%s\n", buffer);
                 // Invia la risposta al server
-                play_again_menu();
+                play_again_menu_draw();
+                printf("Aspettando scelta del guest... \n");
+                memset(buffer, 0, MAXLETTORE);
+                if (recv(sd, buffer, MAXLETTORE, 0) <= 0) {
+                    printf("Connessione al server persa.\n");
+                    exit(EXIT_FAILURE);
+                }
+                //Controllo che il messaggio ricevuto sia quello giusto
+                if (strcmp(buffer, MSG_SERVER_ADMIN_QUIT) == 0) {
+                    printf("%s\n", buffer);
+                    printf("Il Guest ha abbandonato la partita.\n");
+                    printf("Tornerai al menu principale\n");
+                    sleep(1);
+                    return;      
+                } else if (strcmp(buffer, MSG_SERVER_REMATCH) == 0) {
+                    // Mostra il messaggio ricevuto
+                    printf("%s\n", buffer);
+                    // Invia la risposta al server
+                    gioca_partita(PROPRIETARIO);
+                }
             }
-        }else{
+        } else {
             printf("Hai pareggiato!\n");
+            printf("Aspettando scelta del proprietario della partita... \n");
             //Controllo se ricevo MSG_SERVER_REMATCH
             memset(buffer, 0, MAXLETTORE);
             if (recv(sd, buffer, MAXLETTORE, 0) <= 0) {
@@ -448,28 +518,36 @@ void gioca_partita(const enum tipo_giocatore tipo_giocatore) {
             }
             //Controllo che il messaggio ricevuto sia quello giusto
             if (strcmp(buffer, MSG_WAITING_REMATCH) == 0) {
-                // Mostra il messaggio ricevuto
-                printf("%s\n", buffer);
-                // Invia la risposta al server
-                play_again_menu();
+                memset(buffer, 0, MAXLETTORE);
+                if (recv(sd, buffer, MAXLETTORE, 0) <= 0) {
+                    printf("Connessione al server persa.\n");
+                    exit(EXIT_FAILURE);
+                }
+                //Controllo che il messaggio ricevuto sia quello giusto
+                if (strcmp(buffer, MSG_SERVER_REMATCH) == 0) {
+                    // Mostra il messaggio ricevuto
+                    printf("%s\n", buffer);
+                    // Invia la risposta al server
+                    play_again_menu_draw();
+                    gioca_partita(AVVERSARIO);
+                } else if (strcmp(buffer, MSG_SERVER_ADMIN_QUIT) == 0) {
+                    printf("%s\n", buffer);
+                    printf("Il proprietario ha abbandonato la partita.\n");
+                    printf("Tornerai al menu principale\n");
+                    sleep(1);
+                    return;      
+                }
             }
-
         }
-        
     } else if (strcmp(buffer, MSG_SERVER_OPPONENT_LEFT)==0) {
         // Mostra il messaggio ricevuto
         printf("%s\n", buffer);
         printf("L'avversario si è disconnesso... Hai vinto!\n");
-        sleep(1); // Aspetta 1 secondo prima di mostrare il messaggio di vittoria
+        sleep(1);
         play_again_menu();
-        
     }
-
-
-
-    }
-
-
-
-
+  }
 }
+
+
+

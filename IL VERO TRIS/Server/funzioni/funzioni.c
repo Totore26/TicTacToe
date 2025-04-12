@@ -82,6 +82,11 @@ void inizializzaStatoPartite() {
     pthread_mutex_unlock(&lobby.lobbyMutex);
 }
 
+
+// ==========================================================
+//TODO MODIFICARE QUESTA FUNZIONE OPPURE ELIMINARLA
+// ==========================================================
+
 Partita *creaPartita(Giocatore *giocatore) {
 
     char buffer[BUFFER_SIZE];
