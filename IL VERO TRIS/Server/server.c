@@ -155,7 +155,7 @@ void *threadLobby(void *arg) {
 
                 //CICLO IN ATTESA DI TERMINAZIONE PARTITA
                 while(lobby.partita[nuovoId].statoPartita != PARTITA_TERMINATA){
-                    sleep(1); 
+                    usleep(100000); 
                 }
 
                 //se il giocatore ha vinto
@@ -203,7 +203,7 @@ void *threadLobby(void *arg) {
                     perror("[Lobby] Errore nell'invio del messaggio di partite non disponibili\n");
                     break;
                 }
-                sleep(1); // attendo un secondo prima di ripetere il ciclo
+                usleep(100000); // attendo un secondo prima di ripetere il ciclo
                 continue;
             } else { // altrimenti invio la lista delle partite disponibili
 
@@ -262,7 +262,7 @@ void *threadLobby(void *arg) {
                     perror("[Lobby] Errore nell'invio del messaggio di join error\n");
                     break;
                 }
-                sleep(1);
+                usleep(100000);
                 pthread_mutex_unlock(&lobby.lobbyMutex);
                 continue;
             }
@@ -276,13 +276,13 @@ void *threadLobby(void *arg) {
 
                 //CICLO IN ATTESA DI TERMINAZIONE PARTITA
                 while(lobby.partita[partitaScelta].statoPartita != PARTITA_TERMINATA){
-                    sleep(1); 
+                    usleep(100000); 
                 }
 
                 //se il giocatore ha vinto
                 if (giocatore->socket == lobby.partita[partitaScelta].Vincitore) { 
                     
-                    sleep(1); // attendo un secondo prima di inviare il messaggio
+                    usleep(100000); // attendo un secondo prima di inviare il messaggio
                     // chiedo se vuole giocare ancora 
                     sprintf(buffer, MSG_SERVER_REMATCH);
                     if ( send(giocatore->socket, buffer, strlen(buffer), 0) < 0 ) {
@@ -353,7 +353,7 @@ void *threadPartita(void *arg) {
              perror("[Partita] Errore nell'invio del messaggio per la griglia iniziale\n");
             pthread_exit(NULL);
         }
-        sleep(1);
+        usleep(100000);
 
     // ciclo di gioco che parla contemporaneamente con i due giocatori ( devo usare i mutex ) e ogni ciclo è un turno
     while (1) {
@@ -370,7 +370,7 @@ void *threadPartita(void *arg) {
             perror("[Partita] Errore nell'invio del messaggio per la griglia iniziale\n");
             pthread_exit(NULL);
         }
-        sleep(1); // attendo un secondo prima di inviare la griglia
+        usleep(100000); // attendo un secondo prima di inviare la griglia
 
         griglia = grigliaFormattata(partita->Griglia, simboloGiocatoreCorrente);
         if ( send(giocatore[giocatoreCorrente].socket, griglia, strlen(griglia), 0) < 0 ) {
@@ -382,7 +382,7 @@ void *threadPartita(void *arg) {
             perror("[Partita] Errore nell'invio della griglia iniziale\n");
             pthread_exit(NULL);
         }
-        sleep(1); // attendo un secondo prima di inviare il messaggio del turno
+        usleep(100000); // attendo un secondo prima di inviare il messaggio del turno
         // invio il messaggio del turno ai giocatori ( inizia sempre il proprietario cioe X )
         sprintf( buffer, MSG_YOUR_TURN );
         if ( send(giocatore[giocatoreCorrente].socket, buffer, strlen(buffer), 0) < 0 ) {
@@ -446,7 +446,7 @@ void *threadPartita(void *arg) {
                     partita->statoPartita = PARTITA_TERMINATA;
                     pthread_exit(NULL);
                 }
-                sleep(1); // attendo un secondo prima di chiedere il rematch
+                usleep(100000); // attendo un secondo prima di chiedere il rematch
 
                 //controllo se proprietario vuole rematch
                 sprintf(buffer, MSG_SERVER_REMATCH);
@@ -487,7 +487,7 @@ void *threadPartita(void *arg) {
                         pthread_exit(NULL);
                     }
                     // i due giocatori tornano al menu
-                    sleep(1);
+                    usleep(100000);
                     partita->Vincitore = -1;
                     partita->statoPartita = PARTITA_TERMINATA;
                     pthread_exit(NULL);
@@ -523,7 +523,7 @@ void *threadPartita(void *arg) {
                             partita->statoPartita = PARTITA_TERMINATA;
                             pthread_exit(NULL);
                         }
-                        sleep(1); // attendo un secondo prima di chiudere la partita
+                        usleep(100000); // attendo un secondo prima di chiudere la partita
                         partita->Vincitore = -1;
                         partita->statoPartita = PARTITA_TERMINATA;
                         pthread_exit(NULL);
@@ -541,7 +541,7 @@ void *threadPartita(void *arg) {
                         giocatoreCorrente = 0;
                         giocatoreInAttesa = 1;
                         contatoreTurno = -1;
-                        sleep(1); // attendo un secondo prima di ricominciare la partita
+                        usleep(100000); // attendo un secondo prima di ricominciare la partita
                         continue; // ricomincia la partita
                     }
 
@@ -582,7 +582,7 @@ void *threadPartita(void *arg) {
                 pthread_exit(NULL);
             }
             
-            sleep(1); // attendo un secondo prima di chiedere il rematch
+            usleep(100000); // attendo un secondo prima di chiedere il rematch
             //il vincitore potra scegliere se fare un altra partita nel thread della lobby 
             partita->statoPartita = PARTITA_TERMINATA;
             pthread_exit(NULL);
