@@ -485,8 +485,16 @@ void gioca_partita(const enum tipo_giocatore tipo_giocatore) {
     } else if (strcmp(buffer, MSG_SERVER_LOSE)==0) {
         // Mostra il messaggio ricevuto
         printf("%s\n", buffer);
-        return;
-    } else if (strstr(buffer, MSG_SERVER_DRAW)) {
+
+        memset(buffer, 0, MAXLETTORE);
+        if (recv(sd, buffer, MAXLETTORE, 0) <= 0) {
+        printf("Connessione al server persa.\n");
+        exit(EXIT_FAILURE);
+        }
+        if (strcmp(buffer, MSG_SERVER_MENU) == 0) {
+            funzione_menu();
+        }
+    } else if (strcmp(buffer, MSG_SERVER_DRAW)==0) {
         // Mostra il messaggio ricevuto
         printf("%s\n", buffer);
 

@@ -228,7 +228,7 @@ void *threadLobby(void *arg) {
             }
 
             if ( strcmp(buffer, MSG_CLIENT_QUIT) == 0 ) { 
-                // il giocatore ha scelto di uscire
+                // il giocatore ha scelto di tornare al menù principale
                 continue;
             }
 
