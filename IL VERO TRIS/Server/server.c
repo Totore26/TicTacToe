@@ -227,11 +227,17 @@ void *threadLobby(void *arg) {
                 break;
             }
 
+            if ( strcmp(buffer, MSG_CLIENT_QUIT) == 0 ) { 
+                // il giocatore ha scelto di uscire
+                continue;
+            }
+
             int partitaScelta = atoi(buffer);
             if ( partitaScelta < 0 || partitaScelta >= MAX_GAMES ) {
                 perror("[Lobby] Errore, partita scelta non valida\n");
                 break;
             }
+
 
             //creo il thread per la partita
             pthread_mutex_lock(&lobby.lobbyMutex);
