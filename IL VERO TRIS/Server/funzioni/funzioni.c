@@ -33,17 +33,20 @@ char *generaStringaPartiteDisponibili() {
         return NULL;
     }
     int index = 0;
-    index += snprintf(partiteDisponibili + index, BUFFER_SIZE - index, "Partite disponibili:\n");
+    index += snprintf(partiteDisponibili + index, BUFFER_SIZE - index, "╔════════════════════════════════╗\n");
+    index += snprintf(partiteDisponibili + index, BUFFER_SIZE - index, "║       PARTITE DISPONIBILI      ║\n");
+    index += snprintf(partiteDisponibili + index, BUFFER_SIZE - index, "╠════════════════════════════════╣\n");
 
     pthread_mutex_lock(&lobby.lobbyMutex);
     for (int i = 0; i < MAX_GAMES; i++) 
         if (lobby.partita[i].statoPartita == PARTITA_IN_ATTESA)
-            index += snprintf(partiteDisponibili + index, BUFFER_SIZE - index, "%d\n", i); //uso snprintf per evitare partiteDisponibili overflow
+            index += snprintf(partiteDisponibili + index, BUFFER_SIZE - index, "║  %d                             ║\n", i);
     
     pthread_mutex_unlock(&lobby.lobbyMutex);
 
     if (index <= 0) 
         return MSG_NO_GAME; // se non ci sono partite disponibili
+    index += snprintf(partiteDisponibili + index, BUFFER_SIZE - index, "╚════════════════════════════════╝\n");
 
     return partiteDisponibili;
 }
@@ -157,6 +160,9 @@ char *grigliaFormattata(char griglia[SIZE][SIZE], int turno) {
     int index = 0;
 
     index += snprintf(grigliaFormattata + index, 1024 - index, "\n");
+    index += snprintf(grigliaFormattata + index, 1024 - index, "╔══════════════════════════════╗\n");
+    index += snprintf(grigliaFormattata + index, 1024 - index, "║        TAVOLO DI GIOCO       ║\n");
+    index += snprintf(grigliaFormattata + index, 1024 - index, "╚══════════════════════════════╝\n\n");
     for (int i = 0; i < 3; i++) {
         for (int j = 0; j < 3; j++) {
             index += snprintf(grigliaFormattata + index, 1024 - index, " %c ", griglia[i][j]);
@@ -166,9 +172,9 @@ char *grigliaFormattata(char griglia[SIZE][SIZE], int turno) {
         if (i < 2) index += snprintf(grigliaFormattata + index, 1024 - index, "---|---|---\n");
     }
     if (turno % 2 == 0) {
-        index += snprintf(grigliaFormattata + index, 1024 - index, "Sei il giocatore X\n");
+        index += snprintf(grigliaFormattata + index, 1024 - index, "\nSei il giocatore X\n");
     } else {
-        index += snprintf(grigliaFormattata + index, 1024 - index, "Sei il giocatore O\n");
+        index += snprintf(grigliaFormattata + index, 1024 - index, "\nSei il giocatore O\n");
     }
     index += snprintf(grigliaFormattata + index, 1024 - index, "\n");
 

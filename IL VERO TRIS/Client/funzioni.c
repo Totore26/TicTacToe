@@ -56,12 +56,15 @@ void funzione_menu() {
     while (1) {
 
         CLEAR_SCREEN();
-        printf("\n=== MENU PRINCIPALE ===\n");
-        printf("1. Crea partita\n");
-        printf("2. Unisciti a partita\n");
-        printf("3. Esci\n");
-        printf("========================\n");
-        printf("Scegli un'opzione: ");
+        printf("\n");
+        printf("╔════════════════════════════════╗\n");
+        printf("║        MENU PRINCIPALE         ║\n");
+        printf("╠════════════════════════════════╣\n");
+        printf("║  1. Crea partita               ║\n");
+        printf("║  2. Unisciti a partita         ║\n");
+        printf("║  3. Esci                       ║\n");
+        printf("╚════════════════════════════════╝\n");
+        printf(" Scegli un'opzione-> ");
         // Inizializza il buffer
         
         
@@ -155,7 +158,7 @@ void funzione_crea_partita(){
 // Funzione per ottenere la mossa del client
 int get_valid_match(char *input) {
     while (1) {
-        printf("\nScegli una partita disponibile (1-9) \nOppure premi 'q' per tornare al menù principale:\n");
+        printf("\nScegli una partita disponibile (0-9) \nOppure premi 'q' per tornare al menù principale:\n");
         // Legge l'input dell'utente
         // Se fgets restituisce NULL, significa che c'è stato un errore o EOF
         // In tal caso, continua il ciclo per chiedere di nuovo l'input        
@@ -259,7 +262,7 @@ void funzione_entra_partita(){
 int get_valid_move(char *input) {
     // Inizializza il buffer 
     memset(input, 0, MAXSCRITTORE);  // Fixed buffer size
-    printf("Inserisci la tua mossa (1-9): ");
+    printf("Inserisci la tua mossa (1-9)-> ");
     // Legge l'input dell'utente
     // Se fgets restituisce NULL, significa che c'è stato un errore o EOF
     // In tal caso, continua il ciclo per chiedere di nuovo l'input
@@ -284,11 +287,14 @@ int get_valid_move(char *input) {
 void play_again_menu() {
     char input[MAXSCRITTORE];
     CLEAR_SCREEN();
-    printf("\n=== Partita Terminata ===\n");
-        printf("1. Gioca ancora\n");
-        printf("2. Esci\n");
-        printf("========================\n");
-    printf("Scegli un'opzione: ");
+    printf("\n");
+    printf("╔════════════════════════════════╗\n");
+    printf("║       PARTITA TERMINATA        ║\n");
+    printf("╠════════════════════════════════╣\n");
+    printf("║  1. Gioca ancora               ║\n");
+    printf("║  2. Esci                       ║\n");
+    printf("╚════════════════════════════════╝\n");
+    printf(" Scegli un'opzione-> ");
     // Inizializza il buffer
     memset(input, 0, MAXSCRITTORE);  // Fixed buffer size
     if (fgets(input, MAXSCRITTORE, stdin) == NULL) {
