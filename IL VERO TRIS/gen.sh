@@ -4,7 +4,7 @@
 set -e
 
 # Percorso alla directory del progetto
-WORK_DIR="/home/gen/Scrivania/IL VERO TRIS"
+WORK_DIR="/home/gen/Documenti/TicTacToe/IL VERO TRIS"
 
 # Find suitable terminal emulator
 if command -v gnome-terminal.real &> /dev/null; then

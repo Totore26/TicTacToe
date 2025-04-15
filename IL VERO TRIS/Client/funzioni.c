@@ -342,11 +342,14 @@ void play_again_menu() {
     while (1)
     {
         CLEAR_SCREEN();
-        printf("\n=== Partita Terminata ===\n");
-            printf("1. Gioca ancora\n");
-            printf("2. Esci\n");
-            printf("========================\n");
-        printf("Scegli un'opzione: ");
+        printf("\n");
+        printf("╔════════════════════════════════╗\n");
+        printf("║       PARTITA TERMINATA        ║\n");
+        printf("╠════════════════════════════════╣\n");
+        printf("║  1. Gioca ancora               ║\n");
+        printf("║  2. Esci                       ║\n");
+        printf("╚════════════════════════════════╝\n");
+        printf(" Scegli un'opzione-> ");
         // Inizializza il buffer
         memset(input, 0, MAXSCRITTORE);  // Fixed buffer size
         if (fgets(input, MAXSCRITTORE, stdin) == NULL) {
@@ -454,11 +457,14 @@ void play_again_menu_draw() {
     while (1)
     {
         CLEAR_SCREEN();
-        printf("\n=== Partita Terminata Draw ===\n");
-            printf("1. Gioca ancora\n");
-            printf("2. Esci\n");
-            printf("========================\n");
-        printf("Scegli un'opzione: ");
+        printf("\n");
+        printf("╔════════════════════════════════╗\n");
+        printf("║       PARTITA TERMINATA        ║\n");
+        printf("╠════════════════════════════════╣\n");
+        printf("║  1. Gioca ancora               ║\n");
+        printf("║  2. Esci                       ║\n");
+        printf("╚════════════════════════════════╝\n");
+        printf(" Scegli un'opzione-> ");
         // Inizializza il buffer
         memset(input, 0, MAXSCRITTORE);  // Fixed buffer size
         if (fgets(input, MAXSCRITTORE, stdin) == NULL) {
