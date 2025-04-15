@@ -4,6 +4,7 @@
 #include <unistd.h>
 #include <pthread.h>
 #include <arpa/inet.h>
+#include <signal.h>
 
 #include "strutture.h"
 #include "funzioni/funzioni.h"
@@ -12,11 +13,47 @@
 Lobby lobby;
 
 
+
 //dichiarazioni di funzioni
 void *threadLobby(void *arg);
 void *threadPartita(void *arg);
 
+void sigHandler(int signum) {
+    // Gestione del segnale di interruzione (SIGINT) o terminazione (SIGTERM)
+    // Quando arriva un segnale il server rimane attivo 
+    // Chiude le connessioni del client disconnesso e quello che rimane torna al menu
+    printf("\nServer in chiusura...\n");
+    // Chiudo tutte le partite in corso
+    for (int i = 0; i < MAX_GAMES; i++) {
+        if (lobby.partita[i].statoPartita != PARTITA_TERMINATA) {
+            lobby.partita[i].statoPartita = PARTITA_TERMINATA;
+        }
+    }
+    // Chiudo i socket dei giocatori
+    for (int i = 0; i < MAX_CLIENTS; i++) {
+        if (lobby.partita[i].giocatoreAdmin.socket != -1) {
+            close(lobby.partita[i].giocatoreAdmin.socket);
+            lobby.partita[i].giocatoreAdmin.socket = -1;
+        }
+        if (lobby.partita[i].giocatoreGuest.socket != -1) {
+            close(lobby.partita[i].giocatoreGuest.socket);
+            lobby.partita[i].giocatoreGuest.socket = -1;
+        }
+    }
+    // Chiudo il socket del server
+    close(lobby.lobbyMutex.__align);
+    pthread_mutex_destroy(&lobby.lobbyMutex);
+    printf("Server chiuso correttamente.\n");
+    exit(0);
+}
+
 int main() {
+
+    //Gestione dei signali interrump and terminate
+    // per chiudere il server in modo pulito
+    signal(SIGINT, sigHandler);
+    signal(SIGTERM, sigHandler);
+    
     pthread_mutex_init(&lobby.lobbyMutex, NULL);
     inizializzaStatoPartite();
     int server_fd;
@@ -25,21 +62,28 @@ int main() {
      
 
     server_fd = socket(AF_INET, SOCK_STREAM, 0);
+    if (server_fd < 0) {
+        perror("Socket creation failed");
+        exit(EXIT_FAILURE);
+    }
+
+    // Abilita il riutilizzo dell'indirizzo e della porta
+    int opt = 1;
+    if (setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &opt, sizeof(opt)) < 0) {
+        perror("setsockopt failed");
+        exit(EXIT_FAILURE);
+    }
+
+    memset(&address, 0, sizeof(address));
     address.sin_family = AF_INET;
-    address.sin_addr.s_addr = INADDR_ANY;
+    address.sin_addr.s_addr = INADDR_ANY; // Ascolta su qualsiasi interfaccia
     address.sin_port = htons(PORT);
 
-        // Abilita il riutilizzo dell'indirizzo
-        int opt = 1;
-        if (setsockopt(server_fd , SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0) {
-            perror("Errore nel settaggio del socket");
-            exit(EXIT_FAILURE);
-        }
-    
-    if ( bind(server_fd, (struct sockaddr *)&address, sizeof(address)) < 0 ) {
-        perror("\n\nbind fallita\n\n");
-        exit(-1);
+    if (bind(server_fd, (struct sockaddr *)&address, sizeof(address)) < 0) {
+        perror("Bind failed");
+        exit(EXIT_FAILURE);
     }
+
     if ( listen(server_fd, MAX_CLIENTS) < 0 ) {
         perror("\n\nlisten fallita\n\n");
         exit(-1);
@@ -155,12 +199,14 @@ void *threadLobby(void *arg) {
 
                 //CICLO IN ATTESA DI TERMINAZIONE PARTITA
                 while(lobby.partita[nuovoId].statoPartita != PARTITA_TERMINATA){
-                    usleep(100000); 
+                    sleep(1); 
                 }
-
+                
                 //se il giocatore ha vinto
                 if (giocatore->socket == lobby.partita[nuovoId].Vincitore) { 
                     
+                    printf("Il giocatore %d ha vinto la partita\n", giocatore->socket);
+
                     // chiedo se vuole giocare ancora 
                     sprintf(buffer, MSG_SERVER_REMATCH);
                     if ( send(giocatore->socket, buffer, strlen(buffer), 0) < 0 ) {
@@ -177,6 +223,8 @@ void *threadLobby(void *arg) {
                         free(giocatore);
                         pthread_exit(NULL);
                     }
+
+
                     // se il giocatore ha scelto di fare un rematch creo una nuova partita e la metto in attesa
                     if ( strcmp( buffer, MSG_CLIENT_REMATCH ) == 0 ) { // il giocatore ha scelto di fare un rematch
                         partita = creaPartita(giocatore); // creo una nuova partita
@@ -276,7 +324,7 @@ void *threadLobby(void *arg) {
 
                 //CICLO IN ATTESA DI TERMINAZIONE PARTITA
                 while(lobby.partita[partitaScelta].statoPartita != PARTITA_TERMINATA){
-                    usleep(100000); 
+                    sleep(1); 
                 }
 
                 //se il giocatore ha vinto
