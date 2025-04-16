@@ -632,6 +632,8 @@ void gioca_partita(const enum tipo_giocatore tipo_giocatore) {
         }
     } else if (strcmp(buffer, MSG_SERVER_DRAW)==0) {
         // Mostra il messaggio ricevuto
+        printf("Hai pareggiato!\n");
+        attendo_invio();
 
         if(tipo_giocatore == PROPRIETARIO) {
             //Controllo se ricevo MSG_SERVER_REMATCH
@@ -676,7 +678,6 @@ void gioca_partita(const enum tipo_giocatore tipo_giocatore) {
             }
         } else {
             CLEAR_SCREEN();
-            printf("Hai pareggiato!\n");
             printf("Aspettando scelta del proprietario della partita... \n");
             //Controllo se ricevo MSG_SERVER_REMATCH
             memset(buffer, 0, MAXLETTORE);
