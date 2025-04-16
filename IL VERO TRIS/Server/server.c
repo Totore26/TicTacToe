@@ -514,130 +514,32 @@ void *threadPartita(void *arg) {
             break; // esco dal ciclo se la mossa è valida
         }
 
-        // controllo se c'è un pareggio
-
-        if( contatoreTurno == 8 ) {
-            if( is_draw(partita) ) {
-                sprintf(buffer, MSG_SERVER_DRAW); // invio a entrambi i giocatori il messaggio di pareggio
-                if ( send(partita->giocatoreAdmin.socket, buffer, strlen(buffer), 0) < 0 || send(partita->giocatoreGuest.socket, buffer, strlen(buffer), 0) < 0 ) {
-                    perror("[Partita] Errore nell'invio del messaggio di pareggio\n");
-                    close(giocatore[0].socket);
-                    close(giocatore[1].socket);
-                    partita->statoPartita = PARTITA_TERMINATA;
-                    pthread_exit(NULL);
-                }
-                usleep(100000); // attendo un secondo prima di chiedere il rematch
-
-                //controllo se proprietario vuole rematch
-                sprintf(buffer, MSG_SERVER_REMATCH);
-                if ( send(partita->giocatoreAdmin.socket, buffer, strlen(buffer), 0) < 0 ) {
-                    perror("[Partita] Errore nell'invio del messaggio di rivincita al Proprietario\n");
-                    close(giocatore[0].socket);
-                    close(giocatore[1].socket);
-                    partita->statoPartita = PARTITA_TERMINATA;
-                    pthread_exit(NULL);
-                }
-                sprintf(buffer, MSG_WAITING_REMATCH);
-                if ( send(partita->giocatoreGuest.socket, buffer, strlen(buffer), 0) < 0 ) {
-                    perror("[Partita] Errore nell'invio del messaggio di attesa al Guest\n");
-                    close(giocatore[0].socket);
-                    close(giocatore[1].socket);
-                    partita->statoPartita = PARTITA_TERMINATA;
-                    pthread_exit(NULL);
-                }
-
-                //attendo la risposta del proprietario
-                memset(buffer, 0, sizeof(buffer));
-                if ( recv(partita->giocatoreAdmin.socket, buffer, sizeof(buffer), 0) <= 0 ) {
-                    perror("[Partita] Errore nella ricezione della risposta del proprietario\n");
-                    close(giocatore[0].socket);
-                    close(giocatore[1].socket);
-                    partita->statoPartita = PARTITA_TERMINATA;
-                    pthread_exit(NULL);
-                }
-
-                if ( strcmp( buffer, MSG_CLIENT_QUIT ) == 0 ) { // il proprietario ha scelto di uscire tornano entrambi al menu
-                    // informo il guest che il proprietario ha abbandonato
-                    sprintf(buffer, MSG_SERVER_ADMIN_QUIT);
-                    if ( send(partita->giocatoreGuest.socket, buffer, strlen(buffer), 0) < 0 ) {
-                        perror("[Partita] Errore nell'invio del messaggio di abbandono del proprietario\n");
-                        close(giocatore[0].socket);
-                        close(giocatore[1].socket);
-                        partita->statoPartita = PARTITA_TERMINATA;
-                        pthread_exit(NULL);
-                    }
-                    // i due giocatori tornano al menu
-                    usleep(100000);
-                    partita->Vincitore = -1;
-                    partita->statoPartita = PARTITA_TERMINATA;
-                    pthread_exit(NULL);
-                } else if ( strcmp( buffer, MSG_CLIENT_REMATCH ) == 0 ) { // il proprietario ha scelto di fare un rematch quindi informo il guest
-                    
-                    //chiedo il rematch al guest
-                    sprintf(buffer, MSG_SERVER_REMATCH);
-                    if ( send(partita->giocatoreGuest.socket, buffer, strlen(buffer), 0) < 0 ) {
-                        perror("[Partita] Errore nell'invio del messaggio di rivincita al Guest\n");
-                        close(giocatore[0].socket);
-                        close(giocatore[1].socket);
-                        partita->statoPartita = PARTITA_TERMINATA;
-                        pthread_exit(NULL);
-                    }
-
-                    //attendo la risposta del guest
-                    memset(buffer, 0, sizeof(buffer));
-                    if ( recv(partita->giocatoreGuest.socket, buffer, sizeof(buffer), 0) <= 0 ) {
-                        perror("[Partita] Errore nella ricezione della risposta del guest\n");
-                        close(giocatore[0].socket);
-                        close(giocatore[1].socket);
-                        partita->statoPartita = PARTITA_TERMINATA;
-                        pthread_exit(NULL);
-                    }
-
-                    if (strcmp(buffer, MSG_CLIENT_QUIT) == 0) { // il guest ha scelto di uscire
-                        // informo il proprietario che il guest ha abbandonato
-                        sprintf(buffer, MSG_SERVER_ADMIN_QUIT);
-                        if ( send(partita->giocatoreAdmin.socket, buffer, strlen(buffer), 0) < 0 ) {
-                            perror("[Partita] Errore nell'invio del messaggio di abbandono del guest\n");
-                            close(giocatore[0].socket);
-                            close(giocatore[1].socket);
-                            partita->statoPartita = PARTITA_TERMINATA;
-                            pthread_exit(NULL);
-                        }
-                        usleep(100000); // attendo un secondo prima di chiudere la partita
-                        partita->Vincitore = -1;
-                        partita->statoPartita = PARTITA_TERMINATA;
-                        pthread_exit(NULL);
-
-                    } else if (strcmp(buffer, MSG_CLIENT_REMATCH) == 0) { // il guest ha scelto di fare un rematch quindi ricomincia la partita corrente
-                        sprintf(buffer, MSG_SERVER_REMATCH);
-                        if ( send(partita->giocatoreAdmin.socket, buffer, strlen(buffer), 0) < 0 ) {
-                            perror("[Partita] Errore nell'invio del messaggio di abbandono del guest\n");
-                            close(giocatore[0].socket);
-                            close(giocatore[1].socket);
-                            partita->statoPartita = PARTITA_TERMINATA;
-                            pthread_exit(NULL);
-                        }
-                        inizializzazioneGriglia(partita);
-                        giocatoreCorrente = 0;
-                        giocatoreInAttesa = 1;
-                        contatoreTurno = -1;
-                        usleep(100000); // attendo un secondo prima di ricominciare la partita
-                        continue; // ricomincia la partita
-                    }
-
-                } else {
-                    perror("[Partita] Errore, comando non valido\n");
-                    close(giocatore[0].socket);
-                    close(giocatore[1].socket);
-                    partita->statoPartita = PARTITA_TERMINATA;
-                    pthread_exit(NULL);
-                }
-            }
-        }
-
+    
         //controllo se il giocatore corrente ha vinto
 
         if ( check_winner(simboloGiocatoreCorrente, partita) ) { // se il giocatore corrente ha vinto
+
+            // avviso e invio a entrambi la griglia aggiornata
+            sprintf(buffer, MSG_SERVER_BOARD);
+            if ( send(giocatore[giocatoreCorrente].socket, buffer, strlen(buffer), 0) < 0 || send(giocatore[giocatoreInAttesa].socket, buffer, strlen(buffer), 0) < 0 ) {
+                perror("[Partita] Errore nell'invio del messaggio per la griglia iniziale\n");
+                pthread_exit(NULL);
+            }
+            usleep(100000); // attendo un secondo prima di inviare la griglia
+
+            griglia = grigliaFormattata(partita->Griglia, simboloGiocatoreCorrente);
+            if ( send(giocatore[giocatoreCorrente].socket, griglia, strlen(griglia), 0) < 0 ) {
+                perror("[Partita] Errore nell'invio della griglia iniziale\n");
+                pthread_exit(NULL);
+            }   
+            griglia = grigliaFormattata(partita->Griglia, simboloGiocatoreInAttesa);
+            if ( send(giocatore[giocatoreInAttesa].socket, griglia, strlen(griglia), 0) < 0 ) {
+                perror("[Partita] Errore nell'invio della griglia iniziale\n");
+                pthread_exit(NULL);
+            }
+            usleep(100000); // attendo un secondo prima di inviare il messaggio del turno
+            // invio il messaggio del turno ai giocatori ( inizia sempre il proprietario cioe X )
+        
 
             // salvo il vincitore
             partita->Vincitore = giocatore[giocatoreCorrente].socket;
@@ -667,6 +569,129 @@ void *threadPartita(void *arg) {
             partita->statoPartita = PARTITA_TERMINATA;
             pthread_exit(NULL);
         }
+
+
+            // controllo se c'è un pareggio
+
+            if( contatoreTurno == 8 ) {
+                if( is_draw(partita) ) {
+                    sprintf(buffer, MSG_SERVER_DRAW); // invio a entrambi i giocatori il messaggio di pareggio
+                    if ( send(partita->giocatoreAdmin.socket, buffer, strlen(buffer), 0) < 0 || send(partita->giocatoreGuest.socket, buffer, strlen(buffer), 0) < 0 ) {
+                        perror("[Partita] Errore nell'invio del messaggio di pareggio\n");
+                        close(giocatore[0].socket);
+                        close(giocatore[1].socket);
+                        partita->statoPartita = PARTITA_TERMINATA;
+                        pthread_exit(NULL);
+                    }
+                    usleep(100000); // attendo un secondo prima di chiedere il rematch
+    
+                    //controllo se proprietario vuole rematch
+                    sprintf(buffer, MSG_SERVER_REMATCH);
+                    if ( send(partita->giocatoreAdmin.socket, buffer, strlen(buffer), 0) < 0 ) {
+                        perror("[Partita] Errore nell'invio del messaggio di rivincita al Proprietario\n");
+                        close(giocatore[0].socket);
+                        close(giocatore[1].socket);
+                        partita->statoPartita = PARTITA_TERMINATA;
+                        pthread_exit(NULL);
+                    }
+                    sprintf(buffer, MSG_WAITING_REMATCH);
+                    if ( send(partita->giocatoreGuest.socket, buffer, strlen(buffer), 0) < 0 ) {
+                        perror("[Partita] Errore nell'invio del messaggio di attesa al Guest\n");
+                        close(giocatore[0].socket);
+                        close(giocatore[1].socket);
+                        partita->statoPartita = PARTITA_TERMINATA;
+                        pthread_exit(NULL);
+                    }
+    
+                    //attendo la risposta del proprietario
+                    memset(buffer, 0, sizeof(buffer));
+                    if ( recv(partita->giocatoreAdmin.socket, buffer, sizeof(buffer), 0) <= 0 ) {
+                        perror("[Partita] Errore nella ricezione della risposta del proprietario\n");
+                        close(giocatore[0].socket);
+                        close(giocatore[1].socket);
+                        partita->statoPartita = PARTITA_TERMINATA;
+                        pthread_exit(NULL);
+                    }
+    
+                    if ( strcmp( buffer, MSG_CLIENT_QUIT ) == 0 ) { // il proprietario ha scelto di uscire tornano entrambi al menu
+                        // informo il guest che il proprietario ha abbandonato
+                        sprintf(buffer, MSG_SERVER_ADMIN_QUIT);
+                        if ( send(partita->giocatoreGuest.socket, buffer, strlen(buffer), 0) < 0 ) {
+                            perror("[Partita] Errore nell'invio del messaggio di abbandono del proprietario\n");
+                            close(giocatore[0].socket);
+                            close(giocatore[1].socket);
+                            partita->statoPartita = PARTITA_TERMINATA;
+                            pthread_exit(NULL);
+                        }
+                        // i due giocatori tornano al menu
+                        usleep(100000);
+                        partita->Vincitore = -1;
+                        partita->statoPartita = PARTITA_TERMINATA;
+                        pthread_exit(NULL);
+                    } else if ( strcmp( buffer, MSG_CLIENT_REMATCH ) == 0 ) { // il proprietario ha scelto di fare un rematch quindi informo il guest
+                        
+                        //chiedo il rematch al guest
+                        sprintf(buffer, MSG_SERVER_REMATCH);
+                        if ( send(partita->giocatoreGuest.socket, buffer, strlen(buffer), 0) < 0 ) {
+                            perror("[Partita] Errore nell'invio del messaggio di rivincita al Guest\n");
+                            close(giocatore[0].socket);
+                            close(giocatore[1].socket);
+                            partita->statoPartita = PARTITA_TERMINATA;
+                            pthread_exit(NULL);
+                        }
+    
+                        //attendo la risposta del guest
+                        memset(buffer, 0, sizeof(buffer));
+                        if ( recv(partita->giocatoreGuest.socket, buffer, sizeof(buffer), 0) <= 0 ) {
+                            perror("[Partita] Errore nella ricezione della risposta del guest\n");
+                            close(giocatore[0].socket);
+                            close(giocatore[1].socket);
+                            partita->statoPartita = PARTITA_TERMINATA;
+                            pthread_exit(NULL);
+                        }
+    
+                        if (strcmp(buffer, MSG_CLIENT_QUIT) == 0) { // il guest ha scelto di uscire
+                            // informo il proprietario che il guest ha abbandonato
+                            sprintf(buffer, MSG_SERVER_ADMIN_QUIT);
+                            if ( send(partita->giocatoreAdmin.socket, buffer, strlen(buffer), 0) < 0 ) {
+                                perror("[Partita] Errore nell'invio del messaggio di abbandono del guest\n");
+                                close(giocatore[0].socket);
+                                close(giocatore[1].socket);
+                                partita->statoPartita = PARTITA_TERMINATA;
+                                pthread_exit(NULL);
+                            }
+                            usleep(100000); // attendo un secondo prima di chiudere la partita
+                            partita->Vincitore = -1;
+                            partita->statoPartita = PARTITA_TERMINATA;
+                            pthread_exit(NULL);
+    
+                        } else if (strcmp(buffer, MSG_CLIENT_REMATCH) == 0) { // il guest ha scelto di fare un rematch quindi ricomincia la partita corrente
+                            sprintf(buffer, MSG_SERVER_REMATCH);
+                            if ( send(partita->giocatoreAdmin.socket, buffer, strlen(buffer), 0) < 0 ) {
+                                perror("[Partita] Errore nell'invio del messaggio di abbandono del guest\n");
+                                close(giocatore[0].socket);
+                                close(giocatore[1].socket);
+                                partita->statoPartita = PARTITA_TERMINATA;
+                                pthread_exit(NULL);
+                            }
+                            inizializzazioneGriglia(partita);
+                            giocatoreCorrente = 0;
+                            giocatoreInAttesa = 1;
+                            contatoreTurno = -1;
+                            usleep(100000); // attendo un secondo prima di ricominciare la partita
+                            continue; // ricomincia la partita
+                        }
+    
+                    } else {
+                        perror("[Partita] Errore, comando non valido\n");
+                        close(giocatore[0].socket);
+                        close(giocatore[1].socket);
+                        partita->statoPartita = PARTITA_TERMINATA;
+                        pthread_exit(NULL);
+                    }
+                }
+            }
+    
 
         giocatoreCorrente = switchGiocatore(giocatoreCorrente);
         giocatoreInAttesa = switchGiocatore(giocatoreInAttesa);

@@ -49,6 +49,14 @@ void inizializza_socket()
 //  FUNZIONE PER GESTIRE IL MENU 
 // ==========================================================
 
+void attendo_invio(){
+    printf("Premi Invio per continuare...\n");
+    fflush(stdout);
+    while (getchar() != '\n'); // blocca fino a Invio
+}
+
+
+
 void funzione_menu() {
     char buffer[MAXLETTORE];
     char input[MAXSCRITTORE];
@@ -94,7 +102,7 @@ void funzione_menu() {
             exit(EXIT_SUCCESS);
             } else {
                 printf("Scelta non valida. Riprova...\n");
-                usleep(500000); // Aspetta 1 secondo prima di ripetere il menu
+                usleep(800000); 
             }
     } // Close the while loop
 
@@ -162,16 +170,18 @@ void funzione_crea_partita(){
                     if (strcmp(input, "s")==0 || strcmp(input, "S")==0) {
                         // Invia risposta di accettazione
                         printf("Hai accettato l'avversario!\n");
+                        usleep(500000); 
                         send(sd, MSG_CLIENT_ACCEPT, strlen(MSG_CLIENT_ACCEPT), 0);
                         break;
                     } else if (strcmp(input, "n")==0 || strcmp(input, "N")==0) {
                         // Invia risposta di rifiuto
                         printf("Hai rifiutato l'avversario!\n");
+                        usleep(500000); 
                         send(sd, MSG_CLIENT_REFUSE, strlen(MSG_CLIENT_REFUSE), 0);
                         break;
                     } else {
                         printf("Scelta non valida. Riprova...\n");
-                        usleep(500000); // Aspetta 1 secondo prima di ripetere il menu
+                        usleep(800000); // Aspetta 1 secondo prima di ripetere il menu
                         continue;
                     }
                 }
@@ -240,7 +250,9 @@ void funzione_entra_partita(){
 
         if (strcmp(buffer, MSG_NO_GAME)==0) {
             // Se il server ha restituito "MSG_NO_GAME", significa che non ci sono partite disponibili
+            CLEAR_SCREEN();
             printf("Nessuna partita disponibile. Torna al menu principale.\n");
+            attendo_invio();
             return;
         }else{
             // Mostra il messaggio ricevuto
@@ -266,6 +278,9 @@ void funzione_entra_partita(){
             send(sd, input, strlen(input), 0);
         }
 
+        CLEAR_SCREEN();
+        printf("Hai scelto la partita con ID: %s\n", input);
+
         // Ricevi messaggio dal server
         memset(buffer, 0, MAXLETTORE);
         if (recv(sd, buffer, MAXLETTORE, 0) <= 0) {
@@ -276,27 +291,26 @@ void funzione_entra_partita(){
 
         if(strcmp(buffer, MSG_JOIN_ERROR)==0) {
             // Se il server ha restituito un errore, significa che la partita è piena o non esistente
-            CLEAR_SCREEN();
             printf("Partita piena o non esistente. Torna al menu principale.\n"); 
-            sleep(2);           
+            attendo_invio();          
             return;
+        }else{
+            printf("Aspettando la risposta del proprietario...\n");
+
+                    //se ricevo MSG_SERVER_REFUSE
+            if(strcmp(buffer, MSG_SERVER_REFUSE)==0) {
+                printf("L'admin della partita ha rifiutato la tua richiesta. Torna al menu principale.\n"); 
+                attendo_invio();
+                return;
+            }
+
+            if(strcmp(buffer, MSG_SERVER_START)==0) {
+                gioca_partita(AVVERSARIO);
+                return;  
+            }
         }
         
-        CLEAR_SCREEN();
-        printf("Hai scelto la partita con ID: %s\n", input);
-        printf("Aspettando la risposta del proprietario...\n");
-
-                //se ricevo MSG_SERVER_REFUSE
-        if(strcmp(buffer, MSG_SERVER_REFUSE)==0) {
-            printf("L'admin della partita ha rifiutato la tua richiesta. Torna al menu principale.\n"); 
-            usleep(500000);
-            return;
-        }
-
-        if(strcmp(buffer, MSG_SERVER_START)==0) {
-            gioca_partita(AVVERSARIO);
-            return;  
-        }
+        
         
     }
     
@@ -399,17 +413,19 @@ void play_again_menu() {
                         if (strcmp(input, "s")==0 || strcmp(input, "S")==0) {
                             // Invia risposta di accettazione
                             printf("Hai accettato l'avversario!\n");
+                            usleep(500000); 
                             send(sd, MSG_CLIENT_ACCEPT, strlen(MSG_CLIENT_ACCEPT), 0);
                             gioca_partita(PROPRIETARIO);
                             break;
                         } else if (strcmp(input, "n")==0 || strcmp(input, "N")==0) {
                             // Invia risposta di rifiuto
                             printf("Hai rifiutato l'avversario!\n");
+                            usleep(500000); 
                             send(sd, MSG_CLIENT_REFUSE, strlen(MSG_CLIENT_REFUSE), 0);
                             break;
                         } else {
                             printf("Scelta non valida. Riprova...\n");
-                            usleep(500000); // Aspetta 1 secondo prima di ripetere il menu
+                            usleep(800000); 
                             continue;
                         }
                     }
@@ -438,7 +454,7 @@ void play_again_menu() {
             break;
         } else {
             printf("Scelta non valida. Riprova...\n");
-            usleep(500000); // Aspetta 1 secondo prima di ripetere il menu
+            attendo_invio();
             continue;
         }
     }
@@ -502,7 +518,7 @@ void play_again_menu_draw() {
             break;
         } else {
             printf("Scelta non valida. Riprova...\n");
-            usleep(500000); // Aspetta 1 secondo prima di ripetere il menu
+            attendo_invio();
             continue;
         }
     }
@@ -578,6 +594,7 @@ void gioca_partita(const enum tipo_giocatore tipo_giocatore) {
     if (strcmp(buffer, MSG_SERVER_WIN)==0) {
 
         printf("Hai vinto!\n");
+        attendo_invio();
         // Mostra il messaggio ricevuto
         memset(buffer, 0, MAXLETTORE);
         if (recv(sd, buffer, MAXLETTORE, 0) <= 0) {
@@ -594,7 +611,8 @@ void gioca_partita(const enum tipo_giocatore tipo_giocatore) {
 
     } else if (strcmp(buffer, MSG_SERVER_LOSE)==0) {
         // Mostra il messaggio ricevuto
-
+        printf("Hai perso!\n");
+        attendo_invio();
 
         memset(buffer, 0, MAXLETTORE);
         if (recv(sd, buffer, MAXLETTORE, 0) <= 0) {
@@ -632,8 +650,16 @@ void gioca_partita(const enum tipo_giocatore tipo_giocatore) {
                     
                     printf("Il Guest ha abbandonato la partita.\n");
                     printf("Tornerai al menu principale\n");
-                    usleep(500000);
-                    return;      
+                    attendo_invio();
+                    memset(buffer, 0, MAXLETTORE);
+                    if (recv(sd, buffer, MAXLETTORE, 0) <= 0) {
+                    printf("Connessione al server persa.\n");
+                    exit(EXIT_FAILURE);
+                    }
+                    if (strcmp(buffer, MSG_SERVER_MENU) == 0)
+                        funzione_menu();
+                    
+                    return;
                 } else if (strcmp(buffer, MSG_SERVER_REMATCH) == 0) {
                     // Mostra il messaggio ricevuto
                     
@@ -669,7 +695,7 @@ void gioca_partita(const enum tipo_giocatore tipo_giocatore) {
                     
                     printf("Il proprietario ha abbandonato la partita.\n");
                     printf("Tornerai al menu principale\n");
-                    usleep(500000);
+                    attendo_invio();
                     return;      
                 }
             }
@@ -678,7 +704,7 @@ void gioca_partita(const enum tipo_giocatore tipo_giocatore) {
         // Mostra il messaggio ricevuto
         
         printf("L'avversario si è disconnesso... Hai vinto!\n");
-        usleep(500000);
+        attendo_invio();
         play_again_menu();
     }
   }
