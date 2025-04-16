@@ -41,7 +41,6 @@ void sigHandler(int signum) {
         }
     }
     // Chiudo il socket del server
-    close(lobby.lobbyMutex.__align);
     pthread_mutex_destroy(&lobby.lobbyMutex);
     printf("Server chiuso correttamente.\n");
     exit(0);
