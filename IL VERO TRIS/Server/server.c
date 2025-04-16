@@ -327,7 +327,7 @@ void *threadLobby(void *arg) {
                             free(giocatore);
                             pthread_exit(NULL);
                         }
-                        
+                        usleep(500000);
                         continue;
                     }
 
