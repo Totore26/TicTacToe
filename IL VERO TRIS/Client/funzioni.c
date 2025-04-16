@@ -256,10 +256,6 @@ void funzione_entra_partita(){
             }
         }
 
-        CLEAR_SCREEN();
-        printf("Hai scelto la partita con ID: %s\n", input);
-        printf("Aspettando la risposta del proprietario...\n");
-
 
         if(strstr(input, "q") || strstr(input, "Q")){
             // Invia richiesta di uscita
@@ -280,23 +276,28 @@ void funzione_entra_partita(){
 
         if(strcmp(buffer, MSG_JOIN_ERROR)==0) {
             // Se il server ha restituito un errore, significa che la partita è piena o non esistente
-            printf("Partita piena o non esistente. Torna al menu principale.\n");            
+            CLEAR_SCREEN();
+            printf("Partita piena o non esistente. Torna al menu principale.\n"); 
+            sleep(2);           
             return;
         }
-
-        if(strcmp(buffer, MSG_SERVER_START)==0) {
-
-            gioca_partita(AVVERSARIO);
-            return;  // Fixed function name
-        }
         
-        //se ricevo MSG_SERVER_REFUSE
+        CLEAR_SCREEN();
+        printf("Hai scelto la partita con ID: %s\n", input);
+        printf("Aspettando la risposta del proprietario...\n");
+
+                //se ricevo MSG_SERVER_REFUSE
         if(strcmp(buffer, MSG_SERVER_REFUSE)==0) {
-            // Se il server ha restituito un errore, significa che la partita è piena o non esistente
             printf("L'admin della partita ha rifiutato la tua richiesta. Torna al menu principale.\n"); 
             usleep(500000);
             return;
         }
+
+        if(strcmp(buffer, MSG_SERVER_START)==0) {
+            gioca_partita(AVVERSARIO);
+            return;  
+        }
+        
     }
     
 

@@ -285,35 +285,50 @@ void *threadLobby(void *arg) {
                 break;
             }
 
-            sprintf(buffer, "%s",MSG_SERVER_JOIN_REQUEST);
-                if ( send(lobby.partita[partitaScelta].giocatoreAdmin.socket, buffer, strlen(buffer), 0) < 0 ) {
-                    perror("[Lobby] Errore nell'invio della lista delle partite disponibili\n");
-                    break;
-                }
-
-            //ricevo il messaggio ri risposta
-            memset(buffer, 0, sizeof(buffer));
-            if ( recv(lobby.partita[partitaScelta].giocatoreAdmin.socket, buffer, sizeof(buffer), 0) <= 0 ) {
-                perror("[Lobby] Errore nella ricezione della risposta del giocatore admin\n");
-                break;
-            }
-
-            if ( strcmp(buffer, MSG_CLIENT_ACCEPT) == 0 ) { 
                     //creo il thread per la partita
                 pthread_mutex_lock(&lobby.lobbyMutex);
                 if (lobby.partita[partitaScelta].statoPartita == PARTITA_IN_ATTESA) {
 
-                    lobby.partita[partitaScelta].giocatoreGuest = *giocatore;
-                    lobby.partita[partitaScelta].statoPartita = PARTITA_IN_CORSO;
-
-                    pthread_t thread;
-                    if (pthread_create(&thread, NULL, threadPartita, (void *)&lobby.partita[partitaScelta]) != 0) {
-                        perror("[Lobby] Errore nella creazione del thread per la partita\n");
+                    sprintf(buffer, "%s",MSG_SERVER_JOIN_REQUEST);
+                    if ( send(lobby.partita[partitaScelta].giocatoreAdmin.socket, buffer, strlen(buffer), 0) < 0 ) {
+                        perror("[Lobby] Errore nell'invio della lista delle partite disponibili\n");
                         break;
                     }
-                    if ( pthread_detach(thread) != 0 ) { // DETACH DEL THREAD PARTITA
-                        perror("[Lobby] Errore nel detach del thread per la partita\n");
+    
+                    //ricevo il messaggio ri risposta
+                    memset(buffer, 0, sizeof(buffer));
+                    if ( recv(lobby.partita[partitaScelta].giocatoreAdmin.socket, buffer, sizeof(buffer), 0) <= 0 ) {
+                        perror("[Lobby] Errore nella ricezione della risposta del giocatore admin\n");
                         break;
+                    }
+
+                    if ( strcmp(buffer, MSG_CLIENT_ACCEPT) == 0 ) { 
+
+
+                        lobby.partita[partitaScelta].giocatoreGuest = *giocatore;
+                        lobby.partita[partitaScelta].statoPartita = PARTITA_IN_CORSO;
+
+                        pthread_t thread;
+                        if (pthread_create(&thread, NULL, threadPartita, (void *)&lobby.partita[partitaScelta]) != 0) {
+                            perror("[Lobby] Errore nella creazione del thread per la partita\n");
+                            break;
+                        }
+                        if ( pthread_detach(thread) != 0 ) { // DETACH DEL THREAD PARTITA
+                            perror("[Lobby] Errore nel detach del thread per la partita\n");
+                            break;
+                        }
+                    }else if ( strcmp(buffer, MSG_CLIENT_REFUSE) == 0 ) { // il giocatore ha rifiutato la richiesta di join
+
+                        //mando messaggio di rifiuto al giocatore
+                        sprintf(buffer, MSG_SERVER_REFUSE);
+                        if ( send(giocatore->socket, buffer, strlen(buffer), 0) < 0 ) {
+                            perror("[Lobby] Errore nell'invio del messaggio di rifiuto\n");
+                            close(giocatore->socket);
+                            free(giocatore);
+                            pthread_exit(NULL);
+                        }
+                        
+                        continue;
                     }
 
                 } else { // la partita non è disponibile (es. qualcuno si è unito prima)
@@ -377,21 +392,10 @@ void *threadLobby(void *arg) {
                     } 
                     break; // se ha perso va direttamente al menu
                 }
-            }else if ( strcmp(buffer, MSG_CLIENT_REFUSE) == 0 ) { // il giocatore ha rifiutato la richiesta di join
-
-                //mando messaggio di rifiuto al giocatore
-                sprintf(buffer, MSG_SERVER_REFUSE);
-                if ( send(giocatore->socket, buffer, strlen(buffer), 0) < 0 ) {
-                    perror("[Lobby] Errore nell'invio del messaggio di rifiuto\n");
-                    close(giocatore->socket);
-                    free(giocatore);
-                    pthread_exit(NULL);
-                }
+            
                 usleep(100000); // attendo un secondo prima di inviare il messaggio
                 
-                continue;
-
-            }
+        
 
             continue;
 
