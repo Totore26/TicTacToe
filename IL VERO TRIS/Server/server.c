@@ -603,6 +603,29 @@ void *threadPartita(void *arg) {
 
             if( contatoreTurno == 8 ) {
                 if( is_draw(partita) ) {
+
+                     // avviso e invio a entrambi la griglia aggiornata
+                    sprintf(buffer, MSG_SERVER_BOARD);
+                    if ( send(giocatore[giocatoreCorrente].socket, buffer, strlen(buffer), 0) < 0 || send(giocatore[giocatoreInAttesa].socket, buffer, strlen(buffer), 0) < 0 ) {
+                        perror("[Partita] Errore nell'invio del messaggio per la griglia iniziale\n");
+                        pthread_exit(NULL);
+                    }
+                    usleep(100000); // attendo un secondo prima di inviare la griglia
+
+                    griglia = grigliaFormattata(partita->Griglia, simboloGiocatoreCorrente);
+                    if ( send(giocatore[giocatoreCorrente].socket, griglia, strlen(griglia), 0) < 0 ) {
+                        perror("[Partita] Errore nell'invio della griglia iniziale\n");
+                        pthread_exit(NULL);
+                    }   
+                    griglia = grigliaFormattata(partita->Griglia, simboloGiocatoreInAttesa);
+                    if ( send(giocatore[giocatoreInAttesa].socket, griglia, strlen(griglia), 0) < 0 ) {
+                        perror("[Partita] Errore nell'invio della griglia iniziale\n");
+                        pthread_exit(NULL);
+                    }
+                    usleep(100000); // attendo un secondo prima di inviare il messaggio del turno
+                    // invio il messaggio del turno ai giocatori ( inizia sempre il proprietario cioe X )
+
+
                     sprintf(buffer, MSG_SERVER_DRAW); // invio a entrambi i giocatori il messaggio di pareggio
                     if ( send(partita->giocatoreAdmin.socket, buffer, strlen(buffer), 0) < 0 || send(partita->giocatoreGuest.socket, buffer, strlen(buffer), 0) < 0 ) {
                         perror("[Partita] Errore nell'invio del messaggio di pareggio\n");
