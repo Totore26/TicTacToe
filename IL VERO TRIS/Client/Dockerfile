@@ -1,18 +1,14 @@
-# Usa una base con compilatore C
-FROM gcc:latest
+FROM alpine:latest
 
-# Crea una directory di lavoro
 WORKDIR /app
 
-# Copia i file necessari
-COPY client.c ./
-COPY funzioni.c ./
-COPY funzioni.h ./
-COPY strutture.h ./
-COPY ../Comunicazione.h ./   # <-- questo file è fuori da Client, lo copiamo manualmente
+RUN apk update && \
+    apk add --no-cache gcc make libc-dev linux-headers netcat-openbsd
 
-# Compila il client
-RUN gcc client.c funzioni.c -o client
+COPY . /app/
 
-# Comando per eseguire il client
-CMD ["./client"]
+RUN make clean && make run_client
+
+EXPOSE 8080
+
+CMD ["./client", "server", "8080", "1"]

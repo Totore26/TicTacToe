@@ -1,20 +1,14 @@
-# Usa una base con compilatore C e strumenti di rete
-FROM gcc:latest
+FROM alpine:latest
 
-# Crea una directory di lavoro
 WORKDIR /app
 
-# Copia i file necessari
-COPY server.c ./  
-COPY strutture.h ./
-COPY funzioni/funzioni.c ./funzioni.c
-COPY funzioni/funzioni.h ./funzioni.h
+RUN apk update && \
+    apk add --no-cache gcc make libc-dev linux-headers netcat-openbsd
 
-# Compila il server
-RUN gcc server.c funzioni.c -o server -pthread
+COPY . /app/
 
-# Espone la porta TCP usata dal server (modifica se usi una porta diversa)
+RUN make clean && make run_server
+
 EXPOSE 8080
 
-# Comando per eseguire il server
-CMD ["./server"]
+CMD ["./server", "8080", "0.0.0.0", "5"]
