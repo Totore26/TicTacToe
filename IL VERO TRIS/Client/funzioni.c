@@ -280,6 +280,7 @@ void funzione_entra_partita(){
 
         CLEAR_SCREEN();
         printf("Hai scelto la partita con ID: %s\n", input);
+        printf("Recupero informazioni in corso...\n");
 
         // Ricevi messaggio dal server
         memset(buffer, 0, MAXLETTORE);
@@ -291,11 +292,11 @@ void funzione_entra_partita(){
 
         if(strcmp(buffer, MSG_JOIN_ERROR)==0) {
             // Se il server ha restituito un errore, significa che la partita è piena o non esistente
+            usleep(800000);
             printf("Partita piena o non esistente. Torna al menu principale.\n"); 
             attendo_invio();          
             return;
         }else{
-            printf("Aspettando la risposta del proprietario...\n");
 
                     //se ricevo MSG_SERVER_REFUSE
             if(strcmp(buffer, MSG_SERVER_REFUSE)==0) {
@@ -704,8 +705,10 @@ void gioca_partita(const enum tipo_giocatore tipo_giocatore) {
         // Mostra il messaggio ricevuto
         
         printf("L'avversario si è disconnesso... Hai vinto!\n");
+        printf("Tornerai al menu principale\n");
         attendo_invio();
-        play_again_menu();
+        return;
+
     }
   }
 }

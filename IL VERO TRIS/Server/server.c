@@ -480,9 +480,10 @@ void *threadPartita(void *arg) {
             // attendo la mossa 
             memset(buffer, 0, sizeof(buffer));
             if ( recv(giocatore[giocatoreCorrente].socket, buffer, sizeof(buffer), 0) <= 0 ) {
-                perror("[Partita] Errore nella ricezione della mossa del giocatore corrente\n");
-                close(giocatore[0].socket);
-                close(giocatore[1].socket);
+                // Il giocatore corrente si è disconnesso, notifico l'altro giocatore
+                sprintf(buffer, MSG_SERVER_OPPONENT_LEFT);
+                send(giocatore[giocatoreInAttesa].socket, buffer, strlen(buffer), 0);
+                close(giocatore[giocatoreCorrente].socket);
                 partita->statoPartita = PARTITA_TERMINATA;
                 pthread_exit(NULL);
             }
@@ -548,19 +549,21 @@ void *threadPartita(void *arg) {
             //invio al vincitore il messaggio di vittoria
             sprintf(buffer, MSG_SERVER_WIN);
             if ( send(giocatore[giocatoreCorrente].socket, buffer, strlen(buffer), 0) < 0 ) {
-                perror("[Partita] Errore nell'invio del messaggio di vittoria\n");
-                close(giocatore[0].socket);
-                close(giocatore[1].socket);
+                // Il vincitore si è disconnesso, notifico il perdente
+                sprintf(buffer, MSG_SERVER_OPPONENT_LEFT); 
+                send(giocatore[giocatoreInAttesa].socket, buffer, strlen(buffer), 0);
+                close(giocatore[giocatoreCorrente].socket);
                 partita->statoPartita = PARTITA_TERMINATA;
                 pthread_exit(NULL);
             }
             //invio al perdente il messaggio di sconfitta
             sprintf(buffer, MSG_SERVER_LOSE);
             if ( send(giocatore[giocatoreInAttesa].socket, buffer, strlen(buffer), 0) < 0 ) {
-                perror("[Partita] Errore nell'invio del messaggio di sconfitta\n");
-                close(giocatore[0].socket);
-                close(giocatore[1].socket);
-                partita->statoPartita = PARTITA_TERMINATA;
+                // Il perdente si è disconnesso, notifico il vincitore
+                sprintf(buffer, MSG_SERVER_OPPONENT_LEFT);
+                send(giocatore[giocatoreCorrente].socket, buffer, strlen(buffer), 0);
+                close(giocatore[giocatoreInAttesa].socket);
+                partita->statoPartita = PARTITA_TERMINATA; 
                 pthread_exit(NULL);
             }
             
