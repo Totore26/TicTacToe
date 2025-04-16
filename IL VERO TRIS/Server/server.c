@@ -5,6 +5,7 @@
 #include <pthread.h>
 #include <arpa/inet.h>
 #include <signal.h>
+#include <errno.h>
 
 #include "strutture.h"
 #include "funzioni/funzioni.h"
@@ -196,9 +197,19 @@ void *threadLobby(void *arg) {
             //ciclo per gestire il rematch
             while(1) {
 
-                //CICLO IN ATTESA DI TERMINAZIONE PARTITA
                 while(lobby.partita[nuovoId].statoPartita != PARTITA_TERMINATA){
-                    sleep(1); 
+                    // Verifica se il client è ancora connesso
+                    char testBuf[1];
+                    int result = recv(giocatore->socket, testBuf, 1, MSG_PEEK | MSG_DONTWAIT);
+                    if(result == 0 || (result == -1 && errno != EAGAIN && errno != EWOULDBLOCK)) {
+                        // Client disconnesso
+                        printf("[Lobby] Client disconnesso mentre era in attesa\n");
+                        pthread_mutex_lock(&lobby.lobbyMutex);
+                        lobby.partita[nuovoId].statoPartita = PARTITA_TERMINATA;
+                        pthread_mutex_unlock(&lobby.lobbyMutex);
+                        return NULL;
+                    }
+                    sleep(1);
                 }
                 
                 //se il giocatore ha vinto
@@ -299,6 +310,20 @@ void *threadLobby(void *arg) {
                     memset(buffer, 0, sizeof(buffer));
                     if ( recv(lobby.partita[partitaScelta].giocatoreAdmin.socket, buffer, sizeof(buffer), 0) <= 0 ) {
                         perror("[Lobby] Errore nella ricezione della risposta del giocatore admin\n");
+                        close(lobby.partita[partitaScelta].giocatoreAdmin.socket);
+                        //send MSG_SERVER_REFUSE
+                        sprintf(buffer, MSG_SERVER_ADMIN_QUIT);
+                        if ( send(giocatore->socket, buffer, strlen(buffer), 0) < 0 ) {
+                            perror("[Lobby] Errore nell'invio del messaggio di rifiuto\n");
+                            close(giocatore->socket);
+                            free(giocatore);
+                            pthread_exit(NULL);
+                        }
+                        usleep(500000);
+                        //elimino la partita dalla lobby
+                        lobby.partita[partitaScelta].statoPartita = PARTITA_TERMINATA;
+                        pthread_mutex_unlock(&lobby.lobbyMutex); // Sblocco il mutex prima di tornare al menu
+                        continue; // Torna al menu principale
                         break;
                     }
 
@@ -610,8 +635,15 @@ void *threadPartita(void *arg) {
                     memset(buffer, 0, sizeof(buffer));
                     if ( recv(partita->giocatoreAdmin.socket, buffer, sizeof(buffer), 0) <= 0 ) {
                         perror("[Partita] Errore nella ricezione della risposta del proprietario\n");
-                        close(giocatore[0].socket);
-                        close(giocatore[1].socket);
+                        sprintf(buffer, MSG_SERVER_ADMIN_QUIT);
+                            if ( send(partita->giocatoreGuest.socket, buffer, strlen(buffer), 0) < 0 ) {
+                                perror("[Partita] Errore nell'invio del messaggio di abbandono del guest\n");
+                                close(giocatore[0].socket);
+                                close(giocatore[1].socket);
+                                partita->statoPartita = PARTITA_TERMINATA;
+                                pthread_exit(NULL);
+                            }
+                        close(partita->giocatoreAdmin.socket);
                         partita->statoPartita = PARTITA_TERMINATA;
                         pthread_exit(NULL);
                     }
@@ -646,9 +678,16 @@ void *threadPartita(void *arg) {
                         //attendo la risposta del guest
                         memset(buffer, 0, sizeof(buffer));
                         if ( recv(partita->giocatoreGuest.socket, buffer, sizeof(buffer), 0) <= 0 ) {
+                            sprintf(buffer, MSG_SERVER_ADMIN_QUIT);
+                            if ( send(partita->giocatoreAdmin.socket, buffer, strlen(buffer), 0) < 0 ) {
+                                perror("[Partita] Errore nell'invio del messaggio di abbandono del guest\n");
+                                close(giocatore[0].socket);
+                                close(giocatore[1].socket);
+                                partita->statoPartita = PARTITA_TERMINATA;
+                                pthread_exit(NULL);
+                            }
                             perror("[Partita] Errore nella ricezione della risposta del guest\n");
-                            close(giocatore[0].socket);
-                            close(giocatore[1].socket);
+                            close(partita->giocatoreGuest.socket);
                             partita->statoPartita = PARTITA_TERMINATA;
                             pthread_exit(NULL);
                         }

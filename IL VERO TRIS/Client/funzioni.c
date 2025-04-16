@@ -305,6 +305,12 @@ void funzione_entra_partita(){
                 return;
             }
 
+            if(strcmp(buffer, MSG_SERVER_ADMIN_QUIT)==0) {
+                printf("L'admin della partita ha abbandonato. Torna al menu principale.\n"); 
+                attendo_invio();
+                return;
+            }
+
             if(strcmp(buffer, MSG_SERVER_START)==0) {
                 gioca_partita(AVVERSARIO);
                 return;  
