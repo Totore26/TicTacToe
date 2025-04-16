@@ -146,3 +146,9 @@ TAGS
 # Core dumps
 core
 core.*
+
+
+# file compilazione 
+client
+server
+
