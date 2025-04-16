@@ -328,7 +328,8 @@ void *threadLobby(void *arg) {
                             pthread_exit(NULL);
                         }
                         usleep(500000);
-                        continue;
+                        pthread_mutex_unlock(&lobby.lobbyMutex); // Sblocco il mutex prima di tornare al menu
+                        continue; // Torna al menu principale
                     }
 
                 } else { // la partita non è disponibile (es. qualcuno si è unito prima)
