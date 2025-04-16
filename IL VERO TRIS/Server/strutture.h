@@ -33,6 +33,7 @@ typedef struct {
 // ==========================================================
 
 typedef struct {
+    char nomePartita[20];
     Giocatore giocatoreAdmin;
     Giocatore giocatoreGuest;
     int Vincitore;                      // la socket del vincitore   

@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 #include <sys/socket.h>
 #include "../../Comunicazione.h"
 
@@ -25,6 +26,24 @@ int emptyLobby() {
     return 1; // La lobby è vuota
 }
 
+const char *generaNomePartita(int id) {
+    // Array di nomi predefiniti
+    const char *nomi[] = {
+        "Alpha", "Bravo", "Charlie", "Delta", "Echo",
+        "Foxtrot", "Golf", "Hotel", "India", "Juliet"
+    };
+
+    int numeroNomi = sizeof(nomi) / sizeof(nomi[0]);
+
+    // Controlla che l'indice sia valido
+    if (id < 0 || id >= numeroNomi) {
+        fprintf(stderr, "[Errore] ID %d fuori dai limiti per l'array nomi\n", id);
+        return NULL;
+    }
+
+    // Ritorna il nome corrispondente all'indice
+    return nomi[id];
+}
 // genera stringhe del tipo "0 1 2 3\0"
 char *generaStringaPartiteDisponibili() {
     char *partiteDisponibili = malloc(BUFFER_SIZE);
@@ -33,21 +52,29 @@ char *generaStringaPartiteDisponibili() {
         return NULL;
     }
     int index = 0;
-    index += snprintf(partiteDisponibili + index, BUFFER_SIZE - index, "╔════════════════════════════════╗\n");
-    index += snprintf(partiteDisponibili + index, BUFFER_SIZE - index, "║       PARTITE DISPONIBILI      ║\n");
-    index += snprintf(partiteDisponibili + index, BUFFER_SIZE - index, "╠════════════════════════════════╣\n");
-
+    index += snprintf(partiteDisponibili + index, BUFFER_SIZE - index, "╔════════════════════════════════════════╗\n");
+    index += snprintf(partiteDisponibili + index, BUFFER_SIZE - index, "║       PARTITE DISPONIBILI              ║\n");
+    index += snprintf(partiteDisponibili + index, BUFFER_SIZE - index, "╠════════════════════════════════════════╣\n");
+    index += snprintf(partiteDisponibili + index, BUFFER_SIZE - index, "║  NOME PARTITA         │  ID PARTITA    ║\n");
+    index += snprintf(partiteDisponibili + index, BUFFER_SIZE - index, "╠════════════════════════════════════════╣\n");
     pthread_mutex_lock(&lobby.lobbyMutex);
-    for (int i = 0; i < MAX_GAMES; i++) 
-        if (lobby.partita[i].statoPartita == PARTITA_IN_ATTESA)
-            index += snprintf(partiteDisponibili + index, BUFFER_SIZE - index, "║  %d                             ║\n", i);
-    
+    for (int i = 0; i < MAX_GAMES; i++) {
+        if (lobby.partita[i].statoPartita == PARTITA_IN_ATTESA) {
+            const char *nomePartita = generaNomePartita(i);
+            if (nomePartita != NULL) {
+                index += snprintf(partiteDisponibili + index, BUFFER_SIZE - index, "║  %-20s │  %-12d  ║\n", nomePartita, i);
+            } else {
+                index += snprintf(partiteDisponibili + index, BUFFER_SIZE - index, "║  Nome non disponibile │  %-12d ║\n", i);
+            }
+        }
+    }
     pthread_mutex_unlock(&lobby.lobbyMutex);
 
-    if (index <= 0) 
+    if (index <= 0) {
+        free(partiteDisponibili); // Libera la memoria se non ci sono partite disponibili
         return MSG_NO_GAME; // se non ci sono partite disponibili
-    index += snprintf(partiteDisponibili + index, BUFFER_SIZE - index, "╚════════════════════════════════╝\n");
-
+    }
+    index += snprintf(partiteDisponibili + index, BUFFER_SIZE - index, "╚════════════════════════════════════════╝\n");
     return partiteDisponibili;
 }
 
@@ -89,7 +116,6 @@ void inizializzaStatoPartite() {
 // ==========================================================
 //TODO MODIFICARE QUESTA FUNZIONE OPPURE ELIMINARLA
 // ==========================================================
-
 Partita *creaPartita(Giocatore *giocatore) {
 
     char buffer[BUFFER_SIZE];
@@ -113,7 +139,7 @@ Partita *creaPartita(Giocatore *giocatore) {
     // inizializzo la partita
     partita->giocatoreAdmin = *giocatore;
     partita->statoPartita = PARTITA_IN_ATTESA;
-    
+
     // aggiungo alla lobby la nuova partita
     int nuovoId = generazioneIdPartita();
     if (nuovoId == -1) {
@@ -121,9 +147,9 @@ Partita *creaPartita(Giocatore *giocatore) {
         partita->statoPartita = PARTITA_TERMINATA;
         return NULL;
     }
-
+   
     pthread_mutex_lock(&lobby.lobbyMutex);
-    lobby.partita[nuovoId] = *partita; 
+    lobby.partita[nuovoId] = *partita;
     pthread_mutex_unlock(&lobby.lobbyMutex);
 
     // invio il messaggio di attesa al giocatore admin

@@ -16,6 +16,10 @@
 
 #define MSG_CLIENT_JOIN             "JOIN" // il client si unisce a una partita esistente
 
+#define MSG_CLIENT_ACCEPT           "ACCEPT" // il client accetta di unirsi a una partita
+
+#define MSG_CLIENT_REFUSE           "REFUSE" // il client rifiuta di unirsi a una partita
+
 #define MSG_CLIENT_CREAATE          "CREATE" // il client crea una nuova partita
 
 #define MSG_CLIENT_REMATCH          "REMATCH" // il client richiede un rematch
@@ -58,6 +62,10 @@
 #define MSG_SERVER_ADMIN_QUIT       "ADMIN_QUIT" // quando il proprietario decide di abbandonare la partita
 
 #define MSG_SERVER_REMATCH          "REMATCHH" // quando il proprietario decide di fare un rematch (attendo una risposta)
+
+#define MSG_SERVER_JOIN_REQUEST    "JOIN_REQUEST" // quando il proprietario decide di iniziare una (attendo una risposta)
+
+#define MSG_SERVER_REFUSE           "REFUSE" // quando il proprietario decide di rifiutare l'avversario
 
 
 #endif // PROTOCOLLO_H

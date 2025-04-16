@@ -1,0 +1,58 @@
+version: '3'
+
+services:
+  server:
+    build:
+      context: .
+      dockerfile: Server/Dockerfile
+    ports:
+      - "8080:8080"
+    networks:
+      tictactoe-net:
+        aliases:
+          - server
+    healthcheck:
+      test: ["CMD-SHELL", "netstat -ln | grep -q ':8080.*LISTEN.*' || exit 1"]
+      interval: 2s
+      timeout: 5s
+      retries: 30
+      start_period: 10s
+    restart: always
+    stdin_open: true
+    tty: true
+
+  client1:
+    build:
+      context: .
+      dockerfile: Client/Dockerfile
+    depends_on:
+      server:
+        condition: service_healthy
+    networks:
+      - tictactoe-net
+    environment:
+      - SERVER_HOST=server
+      - SERVER_PORT=8080
+    restart: "no"
+    stdin_open: true
+    tty: true
+
+  client2:
+    build:
+      context: .
+      dockerfile: Client/Dockerfile
+    depends_on:
+      server:
+        condition: service_healthy
+    networks:
+      - tictactoe-net
+    environment:
+      - SERVER_HOST=server
+      - SERVER_PORT=8080
+    restart: "no"
+    stdin_open: true
+    tty: true
+
+networks:
+  tictactoe-net:
+    driver: bridge

@@ -2,6 +2,7 @@
 extern Lobby lobby;
 
 int emptyLobby();
+const char *generaNomePartita(int id);
 char *generaStringaPartiteDisponibili();
 void inizializzazioneGriglia(Partita *partita);
 int switchGiocatore(int current);

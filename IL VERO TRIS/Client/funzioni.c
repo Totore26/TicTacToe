@@ -94,7 +94,7 @@ void funzione_menu() {
             exit(EXIT_SUCCESS);
             } else {
                 printf("Scelta non valida. Riprova...\n");
-                sleep(1); // Aspetta 1 secondo prima di ripetere il menu
+                usleep(500000); // Aspetta 1 secondo prima di ripetere il menu
             }
     } // Close the while loop
 
@@ -121,29 +121,68 @@ void funzione_crea_partita(){
         printf("Massimo numero di partite raggiunto. Torna al menu principale.\n");
         return;
     }
+
     if (strcmp(buffer, MSG_WAITING_PLAYER) == 0) {
         // Se il server ha restituito "MSG_WAITING_PLAYER", significa che la partita è in attesa di un avversario
         // Mostra il messaggio ricevuto
-        CLEAR_SCREEN();
-        printf("Aspettando un avversario...\n");
-
-
-    while (1)
-    {
-        //Quando ricevo MSG_SERVER_START allora il client inizia la partita da proprietario della lobby
-        sleep(1);
-        memset(buffer, 0, MAXLETTORE);
-        if (recv(sd, buffer, MAXLETTORE, 0) <= 0) {
-            printf("Connessione al server persa.\n");
-            exit(EXIT_FAILURE);
-        }
         
-        if (strcmp(buffer, MSG_SERVER_START)==0){
-            //Adesso ripulisco lo standard input
-            gioca_partita(PROPRIETARIO);
-            return;
+
+
+        while (1)
+        {
+            //Quando ricevo MSG_SERVER_START allora il client inizia la partita da proprietario della lobby
+            //usleep(500000); 
+            CLEAR_SCREEN();
+            printf("Aspettando un avversario...\n");
+
+            memset(buffer, 0, MAXLETTORE);
+            if (recv(sd, buffer, MAXLETTORE, 0) <= 0) {
+                printf("Connessione al server persa.\n");
+                exit(EXIT_FAILURE);
+            }
+
+            if (strcmp(buffer, MSG_SERVER_JOIN_REQUEST) == 0) {
+                
+                while(1){
+                    // Se il server ha restituito "MSG_SERVER_JOIN_REQUEST", significa che un avversario vuole unirsi alla partita
+                    // Mostra il messaggio ricevuto
+                    CLEAR_SCREEN();
+                    printf("Un avversario vuole unirsi alla tua partita!\n");
+                    printf("Vuoi accettare? (s/n): ");
+                    // Inizializza il buffer
+
+                    memset(input, 0, MAXSCRITTORE);  // Fixed buffer size
+                    if (fgets(input, MAXSCRITTORE, stdin) == NULL) {  // Fixed buffer size
+                        continue;
+                    }
+                    
+                    // Rimuove il newline
+                    input[strcspn(input, "\n")] = 0;
+                    
+                    if (strcmp(input, "s")==0 || strcmp(input, "S")==0) {
+                        // Invia risposta di accettazione
+                        printf("Hai accettato l'avversario!\n");
+                        send(sd, MSG_CLIENT_ACCEPT, strlen(MSG_CLIENT_ACCEPT), 0);
+                        break;
+                    } else if (strcmp(input, "n")==0 || strcmp(input, "N")==0) {
+                        // Invia risposta di rifiuto
+                        printf("Hai rifiutato l'avversario!\n");
+                        send(sd, MSG_CLIENT_REFUSE, strlen(MSG_CLIENT_REFUSE), 0);
+                        break;
+                    } else {
+                        printf("Scelta non valida. Riprova...\n");
+                        usleep(500000); // Aspetta 1 secondo prima di ripetere il menu
+                        continue;
+                    }
+                }
+            }
+            
+            if (strcmp(buffer, MSG_SERVER_START)==0){
+                //Adesso ripulisco lo standard input
+                gioca_partita(PROPRIETARIO);
+                return;
+            }
         }
-    }
     }
     
 
@@ -217,6 +256,10 @@ void funzione_entra_partita(){
             }
         }
 
+        CLEAR_SCREEN();
+        printf("Hai scelto la partita con ID: %s\n", input);
+        printf("Aspettando la risposta del proprietario...\n");
+
 
         if(strstr(input, "q") || strstr(input, "Q")){
             // Invia richiesta di uscita
@@ -241,10 +284,18 @@ void funzione_entra_partita(){
             return;
         }
 
-        if(strstr(buffer, MSG_SERVER_START)) {
+        if(strcmp(buffer, MSG_SERVER_START)==0) {
 
             gioca_partita(AVVERSARIO);
             return;  // Fixed function name
+        }
+        
+        //se ricevo MSG_SERVER_REFUSE
+        if(strcmp(buffer, MSG_SERVER_REFUSE)==0) {
+            // Se il server ha restituito un errore, significa che la partita è piena o non esistente
+            printf("L'admin della partita ha rifiutato la tua richiesta. Torna al menu principale.\n"); 
+            usleep(500000);
+            return;
         }
     }
     
@@ -286,52 +337,112 @@ int get_valid_move(char *input) {
 
 void play_again_menu() {
     char input[MAXSCRITTORE];
-    CLEAR_SCREEN();
-    printf("\n");
-    printf("╔════════════════════════════════╗\n");
-    printf("║       PARTITA TERMINATA        ║\n");
-    printf("╠════════════════════════════════╣\n");
-    printf("║  1. Gioca ancora               ║\n");
-    printf("║  2. Esci                       ║\n");
-    printf("╚════════════════════════════════╝\n");
-    printf(" Scegli un'opzione-> ");
-    // Inizializza il buffer
-    memset(input, 0, MAXSCRITTORE);  // Fixed buffer size
-    if (fgets(input, MAXSCRITTORE, stdin) == NULL) {
-        printf("Errore nella lettura dell'input.\n");
-        return; // Input non valido
-    }
+    char buffer[MAXLETTORE];
 
-    // Rimuove i caratteri di nuova linea (\n o \r\n) se presenti
-    input[strcspn(input, "\r\n")] = 0;
+    while (1)
+    {
+        CLEAR_SCREEN();
+        printf("\n");
+        printf("╔════════════════════════════════╗\n");
+        printf("║       PARTITA TERMINATA        ║\n");
+        printf("╠════════════════════════════════╣\n");
+        printf("║  1. Gioca ancora               ║\n");
+        printf("║  2. Esci                       ║\n");
+        printf("╚════════════════════════════════╝\n");
+        printf(" Scegli un'opzione-> ");
+        // Inizializza il buffer
+        memset(input, 0, MAXSCRITTORE);  // Fixed buffer size
+        if (fgets(input, MAXSCRITTORE, stdin) == NULL) {
+            printf("Errore nella lettura dell'input.\n");
+            return; // Input non valido
+        }
+    
+        // Rimuove i caratteri di nuova linea (\n o \r\n) se presenti
+        input[strcspn(input, "\r\n")] = 0;
+    
+        //Controlla se l'input è valido
+        if (strcmp(input, "1") == 0) {
+            // Invia richiesta di rivincita
+            send(sd , MSG_CLIENT_REMATCH, strlen(MSG_CLIENT_REMATCH), 0);
 
-    //Controlla se l'input è valido
-    if (strcmp(input, "1") == 0) {
-        // Invia richiesta di rivincita
-        send(sd , MSG_CLIENT_REMATCH, strlen(MSG_CLIENT_REMATCH), 0);
-        // Inizia una nuova partita
-        gioca_partita(PROPRIETARIO);
-    } else if (strcmp(input, "2") == 0) {
-        //torna al menu principale
-        send(sd, MSG_CLIENT_QUIT, strlen(MSG_CLIENT_QUIT), 0);
-        //ritorna al menu principale
-        //controll che ricevo MSG_SERVER_MENU
-        memset(input, 0, MAXSCRITTORE);
-        if (recv(sd, input, MAXSCRITTORE, 0) <= 0) {
-            printf("Connessione al server persa.\n");
-            exit(EXIT_FAILURE);
+            while (1)
+            {
+                CLEAR_SCREEN();
+                printf("Hai scelto di giocare ancora!\n");
+                printf("Aspettando che entri un nuovo avversario...\n");
+    
+                memset(buffer, 0, MAXLETTORE);
+                if (recv(sd, buffer, MAXLETTORE, 0) <= 0) {
+                    printf("Connessione al server persa.\n");
+                    exit(EXIT_FAILURE);
+                }
+    
+                if (strcmp(buffer, MSG_SERVER_JOIN_REQUEST) == 0) {
+                    
+                    while(1){
+                        // Se il server ha restituito "MSG_SERVER_JOIN_REQUEST", significa che un avversario vuole unirsi alla partita
+                        // Mostra il messaggio ricevuto
+                        CLEAR_SCREEN();
+                        printf("Un avversario vuole unirsi alla tua partita!\n");
+                        printf("Vuoi accettare? (s/n): ");
+                        // Inizializza il buffer
+    
+                        memset(input, 0, MAXSCRITTORE);  // Fixed buffer size
+                        if (fgets(input, MAXSCRITTORE, stdin) == NULL) {  // Fixed buffer size
+                            continue;
+                        }
+                        
+                        // Rimuove il newline
+                        input[strcspn(input, "\n")] = 0;
+                        
+                        if (strcmp(input, "s")==0 || strcmp(input, "S")==0) {
+                            // Invia risposta di accettazione
+                            printf("Hai accettato l'avversario!\n");
+                            send(sd, MSG_CLIENT_ACCEPT, strlen(MSG_CLIENT_ACCEPT), 0);
+                            gioca_partita(PROPRIETARIO);
+                            break;
+                        } else if (strcmp(input, "n")==0 || strcmp(input, "N")==0) {
+                            // Invia risposta di rifiuto
+                            printf("Hai rifiutato l'avversario!\n");
+                            send(sd, MSG_CLIENT_REFUSE, strlen(MSG_CLIENT_REFUSE), 0);
+                            break;
+                        } else {
+                            printf("Scelta non valida. Riprova...\n");
+                            usleep(500000); // Aspetta 1 secondo prima di ripetere il menu
+                            continue;
+                        }
+                    }
+                }
+                
+            }
+
+            break;
+        } else if (strcmp(input, "2") == 0) {
+            //torna al menu principale
+            send(sd, MSG_CLIENT_QUIT, strlen(MSG_CLIENT_QUIT), 0);
+            //ritorna al menu principale
+            //controll che ricevo MSG_SERVER_MENU
+            memset(input, 0, MAXSCRITTORE);
+            if (recv(sd, input, MAXSCRITTORE, 0) <= 0) {
+                printf("Connessione al server persa.\n");
+                exit(EXIT_FAILURE);
+            }
+            //Controllo che il messaggio ricevuto sia quello giusto
+            if (strcmp(input, MSG_SERVER_MENU) != 0) {
+                printf("Errore nel ritorno al menu principale.\n");
+                exit(EXIT_FAILURE);
+            }
+            // Mostra il messaggio ricevuto
+            funzione_menu();
+            break;
+        } else {
+            printf("Scelta non valida. Riprova...\n");
+            usleep(500000); // Aspetta 1 secondo prima di ripetere il menu
+            continue;
         }
-        //Controllo che il messaggio ricevuto sia quello giusto
-        if (strcmp(input, MSG_SERVER_MENU) != 0) {
-            printf("Errore nel ritorno al menu principale.\n");
-            exit(EXIT_FAILURE);
-        }
-        // Mostra il messaggio ricevuto
-        funzione_menu();
-    } else {
-        printf("Scelta non valida. Riprova...\n");
-        sleep(1); // Aspetta 1 secondo prima di ripetere il menu
     }
+    
+
     
 }
 
@@ -342,48 +453,57 @@ void play_again_menu() {
 
 void play_again_menu_draw() {
     char input[MAXSCRITTORE];
-    CLEAR_SCREEN();
-    printf("\n=== Partita Terminata ===\n");
-        printf("1. Gioca ancora\n");
-        printf("2. Esci\n");
-        printf("========================\n");
-    printf("Scegli un'opzione: ");
-    // Inizializza il buffer
-    memset(input, 0, MAXSCRITTORE);  // Fixed buffer size
-    if (fgets(input, MAXSCRITTORE, stdin) == NULL) {
-        printf("Errore nella lettura dell'input.\n");
-        return; // Input non valido
-    }
 
-    // Rimuove i caratteri di nuova linea (\n o \r\n) se presenti
-    input[strcspn(input, "\r\n")] = 0;
-
-    //Controlla se l'input è valido
-    if (strcmp(input, "1") == 0) {
-        // Invia richiesta di rivincita
-        send(sd , MSG_CLIENT_REMATCH, strlen(MSG_CLIENT_REMATCH), 0);
-        // Inizia una nuova partita
-        return; // Non serve chiamare gioca_partita qui, perché la partita è già in corso
-    } else if (strcmp(input, "2") == 0) {
-        //torna al menu principale
-        send(sd, MSG_CLIENT_QUIT, strlen(MSG_CLIENT_QUIT), 0);
-        //ritorna al menu principale
-        //controll che ricevo MSG_SERVER_MENU
-        memset(input, 0, MAXSCRITTORE);
-        if (recv(sd, input, MAXSCRITTORE, 0) <= 0) {
-            printf("Connessione al server persa.\n");
-            exit(EXIT_FAILURE);
+    while (1)
+    {
+        CLEAR_SCREEN();
+        printf("\n");
+        printf("╔════════════════════════════════╗\n");
+        printf("║       PARTITA TERMINATA        ║\n");
+        printf("╠════════════════════════════════╣\n");
+        printf("║  1. Gioca ancora               ║\n");
+        printf("║  2. Esci                       ║\n");
+        printf("╚════════════════════════════════╝\n");
+        printf(" Scegli un'opzione-> ");
+        // Inizializza il buffer
+        memset(input, 0, MAXSCRITTORE);  // Fixed buffer size
+        if (fgets(input, MAXSCRITTORE, stdin) == NULL) {
+            printf("Errore nella lettura dell'input.\n");
+            return; // Input non valido
         }
-        //Controllo che il messaggio ricevuto sia quello giusto
-        if (strcmp(input, MSG_SERVER_MENU) != 0) {
-            printf("Errore nel ritorno al menu principale.\n");
-            exit(EXIT_FAILURE);
+    
+        // Rimuove i caratteri di nuova linea (\n o \r\n) se presenti
+        input[strcspn(input, "\r\n")] = 0;
+    
+        //Controlla se l'input è valido
+        if (strcmp(input, "1") == 0) {
+            // Invia richiesta di rivincita
+            send(sd , MSG_CLIENT_REMATCH, strlen(MSG_CLIENT_REMATCH), 0);
+            // Inizia una nuova partita
+            break;
+        } else if (strcmp(input, "2") == 0) {
+            //torna al menu principale
+            send(sd, MSG_CLIENT_QUIT, strlen(MSG_CLIENT_QUIT), 0);
+            //ritorna al menu principale
+            //controll che ricevo MSG_SERVER_MENU
+            memset(input, 0, MAXSCRITTORE);
+            if (recv(sd, input, MAXSCRITTORE, 0) <= 0) {
+                printf("Connessione al server persa.\n");
+                exit(EXIT_FAILURE);
+            }
+            //Controllo che il messaggio ricevuto sia quello giusto
+            if (strcmp(input, MSG_SERVER_MENU) != 0) {
+                printf("Errore nel ritorno al menu principale.\n");
+                exit(EXIT_FAILURE);
+            }
+            // Mostra il messaggio ricevuto
+            funzione_menu();
+            break;
+        } else {
+            printf("Scelta non valida. Riprova...\n");
+            usleep(500000); // Aspetta 1 secondo prima di ripetere il menu
+            continue;
         }
-        // Mostra il messaggio ricevuto
-        funzione_menu();
-    } else {
-        printf("Scelta non valida. Riprova...\n");
-        sleep(1); // Aspetta 1 secondo prima di ripetere il menu
     }
     
 }
@@ -467,8 +587,8 @@ void gioca_partita(const enum tipo_giocatore tipo_giocatore) {
 
         //Controllo che il messaggio ricevuto sia quello giusto
         if (strcmp(buffer, MSG_SERVER_REMATCH) == 0) {
+                play_again_menu();
             
-            play_again_menu();
         }
 
     } else if (strcmp(buffer, MSG_SERVER_LOSE)==0) {
@@ -482,6 +602,7 @@ void gioca_partita(const enum tipo_giocatore tipo_giocatore) {
         }
         if (strcmp(buffer, MSG_SERVER_MENU) == 0) {
             funzione_menu();
+            return;
         }
     } else if (strcmp(buffer, MSG_SERVER_DRAW)==0) {
         // Mostra il messaggio ricevuto
@@ -510,7 +631,7 @@ void gioca_partita(const enum tipo_giocatore tipo_giocatore) {
                     
                     printf("Il Guest ha abbandonato la partita.\n");
                     printf("Tornerai al menu principale\n");
-                    sleep(1);
+                    usleep(500000);
                     return;      
                 } else if (strcmp(buffer, MSG_SERVER_REMATCH) == 0) {
                     // Mostra il messaggio ricevuto
@@ -546,7 +667,7 @@ void gioca_partita(const enum tipo_giocatore tipo_giocatore) {
                     
                     printf("Il proprietario ha abbandonato la partita.\n");
                     printf("Tornerai al menu principale\n");
-                    sleep(1);
+                    usleep(500000);
                     return;      
                 }
             }
@@ -555,7 +676,7 @@ void gioca_partita(const enum tipo_giocatore tipo_giocatore) {
         // Mostra il messaggio ricevuto
         
         printf("L'avversario si è disconnesso... Hai vinto!\n");
-        sleep(1);
+        usleep(500000);
         play_again_menu();
     }
   }
