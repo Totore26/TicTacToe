@@ -459,7 +459,7 @@ void play_again_menu_draw() {
         CLEAR_SCREEN();
         printf("\n");
         printf("╔════════════════════════════════╗\n");
-        printf("║       PARTITA TERMINATA        ║\n");
+        printf("║   PARTITA TERMINATA PAREGGIO   ║\n");
         printf("╠════════════════════════════════╣\n");
         printf("║  1. Gioca ancora               ║\n");
         printf("║  2. Esci                       ║\n");
@@ -641,6 +641,7 @@ void gioca_partita(const enum tipo_giocatore tipo_giocatore) {
                 }
             }
         } else {
+            CLEAR_SCREEN();
             printf("Hai pareggiato!\n");
             printf("Aspettando scelta del proprietario della partita... \n");
             //Controllo se ricevo MSG_SERVER_REMATCH
