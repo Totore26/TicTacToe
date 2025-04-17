@@ -76,6 +76,7 @@ const char *generaNomePartita(int id) {
     nomi_usati[indice] = 1;
     return nomi[indice];
 }
+
 // genera stringhe del tipo "0 1 2 3\0"
 char *generaStringaPartiteDisponibili() {
     char *partiteDisponibili = malloc(BUFFER_SIZE);
@@ -89,15 +90,23 @@ char *generaStringaPartiteDisponibili() {
     index += snprintf(partiteDisponibili + index, BUFFER_SIZE - index, "╠════════════════════════════════════════╣\n");
     index += snprintf(partiteDisponibili + index, BUFFER_SIZE - index, "║  NOME PARTITA         │  ID PARTITA    ║\n");
     index += snprintf(partiteDisponibili + index, BUFFER_SIZE - index, "╠════════════════════════════════════════╣\n");
+
     pthread_mutex_lock(&lobby.lobbyMutex);
     for (int i = 0; i < MAX_GAMES; i++) {
         if (lobby.partita[i].statoPartita == PARTITA_IN_ATTESA) {
-            const char *nomePartita = generaNomePartita(i);
-            if (nomePartita != NULL) {
-                index += snprintf(partiteDisponibili + index, BUFFER_SIZE - index, "║  %-20s │  %-12d  ║\n", nomePartita, i);
-            } else {
-                index += snprintf(partiteDisponibili + index, BUFFER_SIZE - index, "║  Nome non disponibile │  %-12d ║\n", i);
+            // Controlla se il nome della partita è vuoto
+            if (lobby.partita[i].nomePartita[0] == '\0') {
+                const char *nomeGenerato = generaNomePartita(i);
+                if (nomeGenerato != NULL) {
+                    // Copia il nome generato nella struttura della partita
+                    strncpy(lobby.partita[i].nomePartita, nomeGenerato, sizeof(lobby.partita[i].nomePartita) - 1);
+                    lobby.partita[i].nomePartita[sizeof(lobby.partita[i].nomePartita) - 1] = '\0'; // Assicurati che sia terminata
+                }
             }
+
+            // Usa il nome della partita salvato nella struttura
+            const char *nomePartita = lobby.partita[i].nomePartita;
+            index += snprintf(partiteDisponibili + index, BUFFER_SIZE - index, "║  %-20s │  %-12d  ║\n", nomePartita, i);
         }
     }
     pthread_mutex_unlock(&lobby.lobbyMutex);

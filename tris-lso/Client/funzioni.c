@@ -169,7 +169,7 @@ void funzione_crea_partita()
                 {
                     CLEAR_SCREEN();
                     printf("Un avversario vuole unirsi alla tua partita!\n");
-                    printf("Vuoi accettare? (s/n): ");
+                    printf("Vuoi accettare? [s/n]: ");
 
                     memset(input, 0, MAXSCRITTORE);
                     if (fgets(input, MAXSCRITTORE, stdin) == NULL)
@@ -441,7 +441,7 @@ void play_again_menu()
                         // Mostra il messaggio ricevuto
                         CLEAR_SCREEN();
                         printf("Un avversario vuole unirsi alla tua partita!\n");
-                        printf("Vuoi accettare? (s/n): ");
+                        printf("Vuoi accettare? [s/n]: ");
                         // Inizializza il buffer
 
                         memset(input, 0, MAXSCRITTORE); // Fixed buffer size

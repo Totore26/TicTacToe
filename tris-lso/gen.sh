@@ -4,7 +4,7 @@
 set -e
 
 # Percorso alla directory del progetto
-WORK_DIR="/home/gen/Documenti/TicTacToe/IL VERO TRIS"
+WORK_DIR="/home/gen/Documenti/TicTacToe/tris-lso"
 
 # Find suitable terminal emulator
 if command -v gnome-terminal.real &> /dev/null; then
@@ -36,7 +36,7 @@ rm -f Server/server Client/client
 # Compila il server
 echo "Compiling server..."
 cd Server || exit 1
-if ! gcc server.c funzioni/funzioni.c -o server -pthread; then
+if ! gcc server.c funzioni.c -o server -pthread; then
     echo "Error: Server compilation failed"
     exit 1
 fi
