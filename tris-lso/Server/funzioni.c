@@ -28,28 +28,53 @@ int emptyLobby() {
 
 const char *generaNomePartita(int id) {
     // Array di nomi predefiniti
-    const char *nomi[] = {
+    static const char *nomi[] = {
         "Roma", "Milano", "Venezia", "Firenze", "Napoli",
         "Torino", "Bologna", "Palermo", "Verona", "Genova",
         "Pisa", "Siena", "Padova", "Trieste", "Lucca",
         "Mantova", "Parma", "Ravenna", "Ferrara", "Perugia",
         "Matera", "Urbino", "Assisi", "Volterra", "Amalfi"
     };
-
-    // Inizializza il generatore di numeri casuali (da chiamare una sola volta all'avvio del programma)
+    
+    static int *nomi_usati = NULL;
     static int initialized = 0;
+    
+    // Inizializzazione una tantum
     if (!initialized) {
         srand(time(NULL));
+        int numeroNomi = sizeof(nomi) / sizeof(nomi[0]);
+        nomi_usati = calloc(numeroNomi, sizeof(int));
+        if (!nomi_usati) {
+            perror("Errore nell'allocazione memoria per nomi_usati");
+            return nomi[0]; // fallback al primo nome
+        }
         initialized = 1;
     }
-
+    
     int numeroNomi = sizeof(nomi) / sizeof(nomi[0]);
     
-    // Genera un indice casuale
-    int indice_casuale = rand() % numeroNomi;
-
-    // Ritorna il nome casuale
-    return nomi[indice_casuale];
+    // Verifica se tutti i nomi sono stati usati
+    int tutti_usati = 1;
+    for (int i = 0; i < numeroNomi; i++) {
+        if (!nomi_usati[i]) {
+            tutti_usati = 0;
+            break;
+        }
+    }
+    
+    // Se tutti i nomi sono stati usati, resetta l'array
+    if (tutti_usati) {
+        memset(nomi_usati, 0, numeroNomi * sizeof(int));
+    }
+    
+    // Trova un nome non ancora usato
+    int indice;
+    do {
+        indice = rand() % numeroNomi;
+    } while (nomi_usati[indice]);
+    
+    nomi_usati[indice] = 1;
+    return nomi[indice];
 }
 // genera stringhe del tipo "0 1 2 3\0"
 char *generaStringaPartiteDisponibili() {
