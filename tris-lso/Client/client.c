@@ -7,6 +7,9 @@ int main() {
     inizializza_socket();
     char buffer[1024];
 
+    signal(SIGTERM, SIGTERM_handler);
+
+
     //Ciclo di attesa per la connessione al server,  con un countdown di 5 secondi
     //Utile per Docker
     for (int i = 5; i >= 0; i--)

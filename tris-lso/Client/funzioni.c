@@ -39,6 +39,16 @@ void inizializza_socket()
         perror("connect error"), exit(EXIT_FAILURE);
 }
 
+// Funzione ausiliaria per gestire il segnale SIGTERM
+// Questa funzione viene chiamata quando il programma riceve un segnale SIGTERM
+// Chiude il socket e termina il programma
+// Utile per Docker
+void SIGTERM_handler()
+{
+    close(sd);
+    exit(EXIT_SUCCESS);
+}
+
 // ==========================================================
 //  FUNZIONE PER GESTIRE IL MENU
 // ==========================================================

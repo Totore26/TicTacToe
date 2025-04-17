@@ -21,6 +21,11 @@
 // e l'inizializzazione del socket
 void inizializza_socket();
 
+//Funzione che gestisce la chiusura del socket
+// e la chiusura del programma
+// Questa funzione viene chiamata quando il programma riceve un segnale SIGTERM
+void SIGTERM_handler();
+
 //Funzione che aspetta un input da parte dell'utente per continuare l'esecuzione
 void attendo_invio();
 
