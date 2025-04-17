@@ -17,21 +17,35 @@
 
 #define CLEAR_SCREEN() printf("\033[H\033[J")
 
-//si connette alla socket del server, restituisce il sd del client
+//Funzione che gestisce la connessione al server
+// e l'inizializzazione del socket
 void inizializza_socket();
 
-//funzione che rappresenta il ciclo di vita del giocatore
+//Funzione che aspetta un input da parte dell'utente per continuare l'esecuzione
 void attendo_invio();
-void funzione_lobby();
+
+//Funzione che gestisce il menu principale del client
 void funzione_menu();
+
+//Funzione che gestisce la creazione di una partita
 void funzione_crea_partita();
+
+//Funzione che gestisce l'entrata in una partita
 void funzione_entra_partita();
-int get_valid_move(char *input);
+
+//Funzione che ottiene un input valido da parte dell'utente per la selezione delle partite
 int get_valid_match(char *input);
-void play_again_menu();
+
+//Funzione che gestisce una partita giocata
 void gioca_partita(const enum tipo_giocatore tipo_giocatore);
+
+//Funzione che ottiene un input valido (1-9) da parte dell'utente per le mosse della partita
+int get_valid_move(char *input);
+
+//Funzione che gestisce il menu di fine partita in caso di vittoria
+void play_again_menu();
+
+//Funzione che gestisce il menu di fine partita in caso di pareggio
 void play_again_menu_draw();
-
-
 
 #endif
