@@ -29,20 +29,27 @@ int emptyLobby() {
 const char *generaNomePartita(int id) {
     // Array di nomi predefiniti
     const char *nomi[] = {
-        "Alpha", "Bravo", "Charlie", "Delta", "Echo",
-        "Foxtrot", "Golf", "Hotel", "India", "Juliet"
+        "Roma", "Milano", "Venezia", "Firenze", "Napoli",
+        "Torino", "Bologna", "Palermo", "Verona", "Genova",
+        "Pisa", "Siena", "Padova", "Trieste", "Lucca",
+        "Mantova", "Parma", "Ravenna", "Ferrara", "Perugia",
+        "Matera", "Urbino", "Assisi", "Volterra", "Amalfi"
     };
 
-    int numeroNomi = sizeof(nomi) / sizeof(nomi[0]);
-
-    // Controlla che l'indice sia valido
-    if (id < 0 || id >= numeroNomi) {
-        fprintf(stderr, "[Errore] ID %d fuori dai limiti per l'array nomi\n", id);
-        return NULL;
+    // Inizializza il generatore di numeri casuali (da chiamare una sola volta all'avvio del programma)
+    static int initialized = 0;
+    if (!initialized) {
+        srand(time(NULL));
+        initialized = 1;
     }
 
-    // Ritorna il nome corrispondente all'indice
-    return nomi[id];
+    int numeroNomi = sizeof(nomi) / sizeof(nomi[0]);
+    
+    // Genera un indice casuale
+    int indice_casuale = rand() % numeroNomi;
+
+    // Ritorna il nome casuale
+    return nomi[indice_casuale];
 }
 // genera stringhe del tipo "0 1 2 3\0"
 char *generaStringaPartiteDisponibili() {
