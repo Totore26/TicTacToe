@@ -1,6 +1,5 @@
 #include "funzioni.h"
 #include "strutture.h"
-#include <sys/time.h>
 
 // ==========================================================
 //  FUNZIONE PER CONNESSIONE CON IL SERVER

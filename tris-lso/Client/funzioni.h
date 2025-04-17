@@ -13,6 +13,8 @@
 #include <netinet/tcp.h>
 #include <signal.h>
 #include <stdbool.h>
+#include <sys/time.h>
+#include <pthread.h>
 #include "strutture.h"
 
 #define CLEAR_SCREEN() printf("\033[H\033[J")

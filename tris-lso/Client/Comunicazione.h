@@ -4,8 +4,8 @@
 /*
  * PROTOCOLLO DI COMUNICAZIONE CLIENT ↔ SERVER
  *
- * Tutti i messaggi sono stringhe ASCII terminate da '\n'.
  * Tutti i messaggi sono UPPERCASE per chiarezza.
+ * 
  */
 
 // ========== MESSAGGI INVIATI DAL CLIENT ==========
@@ -51,13 +51,13 @@
 
 #define MSG_SERVER_BOARD            "BOARD"  // seguito da 9 caratteri
 
-#define MSG_SERVER_WIN              "WIN"
+#define MSG_SERVER_WIN              "WIN"   // per segnalare che il giocatore ha vinto
 
-#define MSG_SERVER_LOSE             "LOSE"
+#define MSG_SERVER_LOSE             "LOSE"  // per segnalare che il giocatore ha perso
 
-#define MSG_SERVER_DRAW             "DRAW"
+#define MSG_SERVER_DRAW             "DRAW"  // per segnalare che la partita è finita in pareggio
 
-#define MSG_SERVER_OPPONENT_LEFT    "OPPONENT_LEFT"
+#define MSG_SERVER_OPPONENT_LEFT    "OPPONENT_LEFT" // per segnalare che l'avversario ha abbandonato la partita
 
 #define MSG_SERVER_ADMIN_QUIT       "ADMIN_QUIT" // quando il proprietario decide di abbandonare la partita
 
@@ -69,15 +69,3 @@
 
 
 #endif // PROTOCOLLO_H
-
-
-/* 
-menu: 
-1. Crea partita
-2. Unisciti a partita
-3. Esci
-
-
-
-
-*/

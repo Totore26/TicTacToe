@@ -2,12 +2,10 @@
 #define STRUTTUREDATI_H
 #include "Comunicazione.h"
 
-#include <pthread.h>
-
 //dimensioni buffer per leggere e scrivere sulla socket
 #define MAXLETTORE 1024
 #define MAXSCRITTORE 16
-#define BUFFER_SIZE 1024  // Add this definition
+#define BUFFER_SIZE 1024 
 
 //serve alla funzione partita per gestire gli input
 enum tipo_giocatore

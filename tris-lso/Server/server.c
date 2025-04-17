@@ -28,7 +28,7 @@ void sigHandler(int signum) {
         if (lobby.partita[i].statoPartita != PARTITA_TERMINATA) {
             lobby.partita[i].statoPartita = PARTITA_TERMINATA;
         }
-        // Close sockets for both players in this game
+        // Chiudo le socket dei giocatori
         if (lobby.partita[i].giocatoreAdmin.socket != -1) {
             close(lobby.partita[i].giocatoreAdmin.socket);
             lobby.partita[i].giocatoreAdmin.socket = -1;
