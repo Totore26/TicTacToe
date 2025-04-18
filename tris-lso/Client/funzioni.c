@@ -315,10 +315,7 @@ void funzione_entra_partita()
                     CLEAR_SCREEN();
                     printf("%s", buffer);
                     printf("Scegli una partita o premi q per tornare al menu:\n");
-                } else {
-                    // Gestisci altri messaggi dal server
-                    printf("Messaggio dal server: %s\n", buffer);
-                }
+                } 
             }
     
             // 👤 Input utente disponibile
@@ -740,10 +737,10 @@ void gioca_partita(const enum tipo_giocatore tipo_giocatore)
         {
             // Mostra il messaggio ricevuto
             printf("Hai pareggiato!\n");
-            attendo_invio();
 
             if (tipo_giocatore == PROPRIETARIO)
             {
+                attendo_invio();
                 // Controllo se ricevo MSG_SERVER_REMATCH
                 memset(buffer, 0, MAXLETTORE);
                 if (recv(sd, buffer, MAXLETTORE, 0) <= 0)
@@ -795,6 +792,7 @@ void gioca_partita(const enum tipo_giocatore tipo_giocatore)
             else
             {
                 CLEAR_SCREEN();
+                printf("Hai pareggiato!\n");
                 printf("Aspettando scelta del proprietario della partita... \n");
                 // Controllo se ricevo MSG_SERVER_REMATCH
                 memset(buffer, 0, MAXLETTORE);
