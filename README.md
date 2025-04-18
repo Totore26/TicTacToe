@@ -4,26 +4,28 @@ The project structure is as follows:
 
 \`\`\`
 .
-├── Client
-│   ├── client
-│   ├── client.c
+tris-lso/
+├── Client/
+│   ├── Comunicazione.h
 │   ├── Dockerfile
+│   ├── client.c
 │   ├── funzioni.c
 │   ├── funzioni.h
 │   └── strutture.h
-├── Comunicazione.h
+├── Server/
+│   ├── Comunicazione.h
+│   ├── Dockerfile
+│   ├── server.c
+│   ├── funzioni.c
+│   ├── funzioni.h
+│   └── strutture.h
+├── README.md
 ├── docker-compose.yml
+├── eseguiWindows.bat
 ├── gen.sh
 ├── run.sh
-├── runT.sh
-└── Server
-    ├── Dockerfile
-    ├── funzioni
-    │   ├── funzioni.c
-    │   └── funzioni.h
-    ├── server
-    ├── server.c
-    └── strutture.h
+├── runWin.ps1
+└── runmac.sh
 \`\`\`
 ### File Descriptions
 
