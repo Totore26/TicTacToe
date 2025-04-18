@@ -67,5 +67,7 @@
 
 #define MSG_SERVER_REFUSE           "REFUSE" // quando il proprietario decide di rifiutare l'avversario
 
+#define MSG_SERVER_GAME_LIST        "GAME_LIST" // per inviare la lista delle partite disponibili
+
 
 #endif // PROTOCOLLO_H

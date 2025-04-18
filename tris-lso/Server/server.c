@@ -14,6 +14,7 @@
 #define UNUSED(x) (void)(x)
 
 Lobby lobby;
+Giocatori giocatori;
 
 //dichiarazioni di funzioni
 void *threadLobby(void *arg);
@@ -50,9 +51,10 @@ int main() {
     // per chiudere il server in modo pulito
     signal(SIGINT, sigHandler);
     signal(SIGTERM, sigHandler);
-    
-    pthread_mutex_init(&lobby.lobbyMutex, NULL);
+
     inizializzaStatoPartite();
+    inizializzaGiocatori();
+
     int server_fd;
     struct sockaddr_in address;
     socklen_t addrlen = sizeof(address);
@@ -102,7 +104,9 @@ int main() {
             close(nuovaSocket);
             continue;
         }
-        giocatore->socket = nuovaSocket; //salvo la socket del giocatore        
+        giocatore->socket = nuovaSocket; //salvo la socket del giocatore 
+
+        giocatore->id = assegnazioneGiocatore(*giocatore); //inserisce il giocatore nella lista dei giocatori connessi
         
         //mando il giocatore nella lobby
         pthread_t thread;
@@ -151,7 +155,7 @@ void *threadLobby(void *arg) {
         // il giocatore ha scelto di creare una partita 
         if ( strcmp( buffer, MSG_CLIENT_CREAATE ) == 0 ) { 
             
-                        //controllo di non aver raggiunto il numero massimo di partite (se raggiunte torna 1)
+                //controllo di non aver raggiunto il numero massimo di partite (se raggiunte torna 1)
                 if (MaxPartiteRaggiunte()) {
                     perror("[Lobby] Errore, numero massimo di partite raggiunto, informo il client\n");
                     sprintf(buffer, MSG_SERVER_MAX_GAMES);
@@ -189,7 +193,32 @@ void *threadLobby(void *arg) {
                     perror("[Lobby] Errore nell'invio del messaggio di attesa secondo giocatore\n");
                     return NULL;
                 }
-
+                
+                // invio a tutti i client che guardano la lista delle partite disponibili quella aggiornata con la nuova partita:
+                for (int i = 0; i < MAX_CLIENTS; i++) {
+                    if (giocatori.giocatore[i].socket != -1 && giocatori.giocatore[i].stato == 1) {
+                        // invio il messaggio di lista aggiornata di partite disponibili
+                        sprintf(buffer, MSG_SERVER_GAME_LIST);
+                        if ( send(giocatori.giocatore[i].socket, buffer, strlen(buffer), 0) < 0 ) {
+                            perror("[Lobby] Errore nell'invio del messaggio di lista aggiornata di partite disponibili\n");
+                            return NULL;
+                        }
+        
+                        usleep(100000); // attendo un secondo prima di inviare il messaggio
+        
+                        char *partiteDisponibili = generaStringaPartiteDisponibili();
+                        if (partiteDisponibili == NULL) {
+                            perror("[Lobby] Errore nella generazione della stringa delle partite disponibili\n");
+                            return NULL;
+                        }
+                        sprintf(buffer, "%s", partiteDisponibili);
+                        if ( send(giocatori.giocatore[i].socket, buffer, strlen(buffer), 0) < 0 ) {
+                            perror("[Lobby] Errore nell'invio della lista delle partite disponibili\n");
+                            free(partiteDisponibili);
+                            return NULL;
+                        }
+                    }
+                }
 
             //ciclo per gestire il rematch
             while(1) {
@@ -250,6 +279,11 @@ void *threadLobby(void *arg) {
             }
 
         } else if ( strcmp( buffer, MSG_CLIENT_JOIN ) == 0 ) { // il giocatore ha scelto di unirsi a una partita
+            
+            //prima metto lo stato del giocatore a 1 cosi da inviargli eventuali liste aggiornate di partite
+            giocatori.giocatore[giocatore->id].stato = 1;
+
+            printf("[Lobby] Il giocatore %d ha scelto di unirsi a una partita, modifico il suo stato a 1\n", giocatore->socket);
 
             // se non ci sono partite disponibili
             if (emptyLobby()) {
@@ -283,7 +317,8 @@ void *threadLobby(void *arg) {
             }
 
             if ( strcmp(buffer, MSG_CLIENT_QUIT) == 0 ) { 
-                // il giocatore ha scelto di tornare al menù principale
+                // il giocatore ha scelto di tornare al menù principale (metto lo stato a 0)
+                giocatore->stato = 0;
                 continue;
             }
 
@@ -430,6 +465,8 @@ void *threadLobby(void *arg) {
         }
     }
     // Chiudo la connessione e libero la memoria
+               
+    giocatori.giocatore[giocatore->id].socket = -1; // rimuovo il giocatore dalla lista dei giocatori connessi
     close(giocatore->socket);
     free(giocatore);
     pthread_exit(NULL);

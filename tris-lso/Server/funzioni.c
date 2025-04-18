@@ -7,6 +7,7 @@
 #include "Comunicazione.h"
 
 extern Lobby lobby;
+extern Giocatori giocatori;
 
 
 // ==========================================================
@@ -147,10 +148,29 @@ int MaxPartiteRaggiunte() {
 }
 
 void inizializzaStatoPartite() {
+    pthread_mutex_init(&lobby.lobbyMutex, NULL);
     pthread_mutex_lock(&lobby.lobbyMutex);
     for (int i = 0; i < MAX_GAMES; i++) 
         lobby.partita[i].statoPartita = PARTITA_TERMINATA;
     pthread_mutex_unlock(&lobby.lobbyMutex);
+}
+
+void inizializzaGiocatori() {
+    for (int i = 0; i < MAX_CLIENTS; i++) {
+        giocatori.giocatore[i].socket = -1; // Inizializza il socket a -1 per indicare che non è connesso
+        giocatori.giocatore[i].stato = 0; // Inizializza lo stato a 0 (giocatore non in lista partite)
+        giocatori.giocatore[i].id = -1; // Inizializza l'id a -1 (non assegnato)
+    }
+}
+
+int assegnazioneGiocatore(Giocatore giocatore) {
+    for (int i = 0; i < MAX_CLIENTS; i++) {
+        if (giocatori.giocatore[i].socket == -1) { // Trova un posto libero
+            giocatori.giocatore[i] = giocatore;
+            return i; // Restituisce l'indice del giocatore assegnato
+        }
+    }
+    return -1; // Non ci sono posti liberi
 }
 
 

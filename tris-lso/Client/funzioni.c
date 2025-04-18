@@ -277,15 +277,56 @@ void funzione_entra_partita()
             // Se c'è almeno una lobby allora mostra il messaggio ricevuto
             CLEAR_SCREEN();
             printf("%s", buffer);
+            printf("Scegli una partita o premi q per tornare al menu:\n");
         }
 
-        while (1)
-        {
-            // ciclo finchè non ottengo un input valido
-            memset(input, 0, MAXSCRITTORE);
-            if (get_valid_match(input))
-            {
-                break; // Manda l'input valido e esce dal loop
+        while (1) {
+            fd_set readfds;
+            FD_ZERO(&readfds);
+            FD_SET(STDIN_FILENO, &readfds);  // input utente
+            FD_SET(sd, &readfds);           // messaggi dal server
+    
+            int maxfd = sd > STDIN_FILENO ? sd : STDIN_FILENO;
+    
+            int ready = select(maxfd + 1, &readfds, NULL, NULL, NULL);
+            if (ready < 0) {
+                perror("Errore nella funzione select");
+                continue; // Continua il ciclo in caso di errore
+            }
+    
+            // 📥 Se arriva un messaggio dal server vedo se si tratta nella macro 
+            if (FD_ISSET(sd, &readfds)) {
+                memset(buffer, 0, MAXLETTORE);
+                ssize_t bytes_received = recv(sd, buffer, sizeof(buffer) - 1, 0);
+                if (bytes_received <= 0) {
+                    printf("Connessione chiusa dal server.\n");
+                    break; // Esce dal ciclo in caso di errore o chiusura
+                }
+    
+                if (strcmp(buffer, MSG_SERVER_GAME_LIST) == 0) {  // Usa la macro, non la stringa letterale
+                    // Aspetta il secondo messaggio: la lista aggiornata
+                    memset(buffer, 0, MAXLETTORE);
+                    bytes_received = recv(sd, buffer, sizeof(buffer) - 1, 0);
+                    if (bytes_received <= 0) {
+                        printf("Connessione chiusa dal server.\n");
+                        break; // Esce dal ciclo in caso di errore o chiusura
+                    }
+                    // stampo la lista aggiornata
+                    CLEAR_SCREEN();
+                    printf("%s", buffer);
+                    printf("Scegli una partita o premi q per tornare al menu:\n");
+                } else {
+                    // Gestisci altri messaggi dal server
+                    printf("Messaggio dal server: %s\n", buffer);
+                }
+            }
+    
+            // 👤 Input utente disponibile
+            if (FD_ISSET(STDIN_FILENO, &readfds)) {
+                memset(input, 0, MAXSCRITTORE);
+                if (get_valid_match(input)) {
+                    break; // input valido → esce dal ciclo
+                }
             }
         }
 

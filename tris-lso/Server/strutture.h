@@ -25,6 +25,8 @@
 
 typedef struct {
     int socket;     // socket associato al giocatore    // 'X' o 'O'
+    int stato;      // stato del giocatore (1 se sta scegliendo una partita, 0 altrimenti)
+    int id;         // id del giocatore assegnato nel vettore di giocatori
 } Giocatore;
 
 
@@ -46,9 +48,18 @@ typedef struct {
 // ==========================================================
 
 typedef struct {
-    Partita partita[MAX_GAMES];
+    Partita partita[MAX_GAMES];     // per tenere traccia delle partite attive
     pthread_mutex_t lobbyMutex;
 } Lobby;
+
+// ==========================================================
+// STRUTTURA DI GIOCATORI CHE TRACCIA LE CONNESSIONI
+// ==========================================================
+
+typedef struct {
+    Giocatore giocatore[MAX_CLIENTS];   // per tenere traccia dei giocatori connessi
+} Giocatori;
+
 
 
 //crea partita, unisciti, stampa ogni volta che qualcuno accede al server con un segnale per tutti i thread

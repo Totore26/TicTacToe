@@ -9,6 +9,8 @@ int switchGiocatore(int current);
 int MaxPartiteRaggiunte();
 int generazioneIdPartita();
 void inizializzaStatoPartite();
+void inizializzaGiocatori();
+int assegnazioneGiocatore(Giocatore giocatore);
 int eseguiMossa(char board[3][3], int row, int col, char player);
 int is_valid_move(char board[3][3], int row, int col);
 int check_winner(char symbol, Partita *partita);
