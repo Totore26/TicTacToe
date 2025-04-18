@@ -4,7 +4,7 @@
 # Descrizione: Avvia il server e due client TicTacToe su macOS
 
 # Imposta percorso di lavoro
-PROJECT_DIR="$HOME/Desktop/TicTacToe/IL VERO TRIS"
+PROJECT_DIR="$HOME/Desktop/TicTacToe/tris-lso"
 
 # Pulisci eventuali build precedenti
 cd "$PROJECT_DIR/Server" && rm -f server
@@ -12,7 +12,7 @@ cd "$PROJECT_DIR/Client" && rm -f client
 
 # Compila server e client
 echo "Compilazione server..."
-cd "$PROJECT_DIR/Server" && gcc server.c funzioni/funzioni.c -o server -pthread
+cd "$PROJECT_DIR/Server" && gcc server.c funzioni.c -o server -pthread
 
 echo "Compilazione client..."
 cd "$PROJECT_DIR/Client" && gcc client.c funzioni.c -o client
