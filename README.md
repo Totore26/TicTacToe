@@ -4,7 +4,7 @@ Implementation of Tic-Tac-Toe (Tris) in C language with client-server architectu
 
 ## Project Structure
 
-\`\`\`
+```
 .
 tris-lso/
 ├── Client/
@@ -28,7 +28,7 @@ tris-lso/
 ├── run.sh
 ├── runWin.ps1
 └── runmac.sh
-\`\`\`
+```
 ### File Descriptions
 
 #### Client/
