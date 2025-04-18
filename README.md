@@ -54,3 +54,46 @@ tris-lso/
 - **`gen.sh`**: Script for compiling and running the project in a specific environment.
 - **`run.sh`**: Script for compiling and launching the server and clients in separate terminal windows.
 - **`runT.sh`**: Alternative script for running the server and clients, tailored for macOS environments.
+
+## Project Execution
+
+### Prerequisites
+- Docker installed and running
+- Repository cloned or extracted to Desktop
+
+### Execution Instructions
+
+1. Open a terminal and navigate to the project folder:
+   ```
+   cd ~/Desktop/TicTacToe/tris-lso
+   ```
+
+2. Choose the appropriate script based on your operating system:
+
+   - **macOS**:
+     ```
+     chmod +x runmac.sh
+     ./runmac.sh
+     ```
+
+   - **Linux**:
+     ```
+     chmod +x run.sh
+     ./run.sh
+     ```
+
+   - **Windows**:
+     Double-click on `eseguiWindows.bat` or run PowerShell as administrator:
+     ```
+     .\runWin.ps1
+     ```
+
+3. Follow the on-screen instructions to start the desired number of clients.
+
+4. Play Tic-Tac-Toe! The server will manage connections and matches between clients.
+
+### Note
+- Clients are launched in separate terminal windows.
+- The first client can create a game, while others can join.
+- Each game is a 1v1 Tic-Tac-Toe session.
+
