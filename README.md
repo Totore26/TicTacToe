@@ -1,6 +1,8 @@
 # TicTacToe
-Project of the implementation of the Tris in Lingua C, architecture client server.
-The project structure is as follows:
+
+Implementation of Tic-Tac-Toe (Tris) in C language with client-server architecture.
+
+## Project Structure
 
 \`\`\`
 .

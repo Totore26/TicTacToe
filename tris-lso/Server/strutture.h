@@ -14,7 +14,6 @@
 #define PARTITA_TERMINATA           1       // quando un giocatore vince o pareggia
 #define PARTITA_IN_ATTESA           2       // quando si sceglie di partecipare a una partita
 
-// la partita quanto termina rimane con stato in corso, passa allo stato terminata solo quando entrambi gli host hanno abbandonato
 
 // ALTRO
 #define CLEAR_SCREEN()  printf("\033[H\033[J")
@@ -59,10 +58,6 @@ typedef struct {
 typedef struct {
     Giocatore giocatore[MAX_CLIENTS];   // per tenere traccia dei giocatori connessi
 } Giocatori;
-
-
-
-//crea partita, unisciti, stampa ogni volta che qualcuno accede al server con un segnale per tutti i thread
 
 
 #endif // STRUTTURE_H
