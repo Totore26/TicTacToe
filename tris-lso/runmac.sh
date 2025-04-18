@@ -1,44 +1,62 @@
 #!/bin/bash
 
-# Nome: tictactoe_mac.sh
-# Descrizione: Avvia il server e due client TicTacToe su macOS
+# Percorso alla cartella del progetto
+PROGETTO="$HOME/Desktop/TicTacToe/tris-lso"
 
-# Imposta percorso di lavoro
-PROJECT_DIR="$HOME/Desktop/TicTacToe/tris-lso"
+# Nome dei servizi definiti in docker-compose
+SERVER_NAME="server"
+CLIENT_NAME="client"
+PROJECT_NAME="tris-lso"  # Questo è il nome che docker-compose usa nei container
 
-# Pulisci eventuali build precedenti
-cd "$PROJECT_DIR/Server" && rm -f server
-cd "$PROJECT_DIR/Client" && rm -f client
+# Vai nella directory del progetto
+cd "$PROGETTO" || {
+  echo "❌ Impossibile trovare la cartella del progetto: $PROGETTO"
+  exit 1
+}
 
-# Compila server e client
-echo "Compilazione server..."
-cd "$PROJECT_DIR/Server" && gcc server.c funzioni.c -o server -pthread
+# Chiedi il numero di client
+read -rp "Inserisci il numero di client da avviare: " N
 
-echo "Compilazione client..."
-cd "$PROJECT_DIR/Client" && gcc client.c funzioni.c -o client
+# Controllo input
+if ! [[ "$N" =~ ^[0-9]+$ ]]; then
+  echo "❌ Inserire un numero intero valido."
+  exit 1
+fi
 
-# Avvia il server in una nuova finestra Terminal
-osascript <<EOF
+echo "🧹 Controllo e rimozione di eventuali container esistenti..."
+
+# Ferma ed elimina eventuali container client esistenti
+for ((i = 1; i <= 50; i++)); do
+  CONTAINER="${PROJECT_NAME}-${CLIENT_NAME}-${i}"
+  if docker ps -a --format '{{.Names}}' | grep -q "^$CONTAINER$"; then
+    echo "⚠️  Rimozione container esistente: $CONTAINER"
+    docker rm -f "$CONTAINER" >/dev/null
+  fi
+done
+
+# Ferma ed elimina il container server se esiste
+SERVER_CONTAINER="${PROJECT_NAME}-${SERVER_NAME}-1"
+if docker ps -a --format '{{.Names}}' | grep -q "^$SERVER_CONTAINER$"; then
+  echo "⚠️  Rimozione container esistente: $SERVER_CONTAINER"
+  docker rm -f "$SERVER_CONTAINER" >/dev/null
+fi
+
+# Avvia il server e i client
+echo "🚀 Avvio del server e di $N client..."
+docker compose up -d --scale "$CLIENT_NAME"="$N"
+
+# Attendi qualche secondo per permettere la creazione dei container
+sleep 3
+
+# Apri una finestra terminale per ogni client e fai attach
+for ((i = 1; i <= N; i++)); do
+  TERMINAL_CMD="docker attach ${PROJECT_NAME}-${CLIENT_NAME}-${i}"
+  osascript <<EOF
 tell application "Terminal"
-    do script "cd '$PROJECT_DIR/Server' && ./server; read -p 'Premi Invio per uscire...'"
+  do script "$TERMINAL_CMD"
+  activate
 end tell
 EOF
+done
 
-# Attendi l'avvio del server
-sleep 2
-
-# Avvia il primo client
-osascript <<EOF
-tell application "Terminal"
-    do script "cd '$PROJECT_DIR/Client' && ./client; read -p 'Premi Invio per uscire...'"
-end tell
-EOF
-
-# Avvia il secondo client
-osascript <<EOF
-tell application "Terminal"
-    do script "cd '$PROJECT_DIR/Client' && ./client; read -p 'Premi Invio per uscire...'"
-end tell
-EOF
-
-echo "Server e client avviati!"
+echo "✅ Tutto pronto! Ogni client è stato aperto in una nuova finestra Terminal."
