@@ -47,4 +47,10 @@ tell application "Terminal"
 end tell
 EOF
 
+osascript <<EOF
+tell application "Terminal"
+    do script "cd '$PROJECT_DIR/Client' && ./client; read -p 'Premi Invio per uscire...'"
+end tell
+EOF
+
 echo "Server e client avviati!"

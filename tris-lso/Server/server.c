@@ -270,6 +270,34 @@ void *threadLobby(void *arg) {
                             free(giocatore);
                             pthread_exit(NULL);
                         }
+                        
+                        // invio a tutti i client che guardano la lista delle partite disponibili quella aggiornata con la nuova partita:
+                        for (int i = 0; i < MAX_CLIENTS; i++) {
+                            if (giocatori.giocatore[i].socket != -1 && giocatori.giocatore[i].stato == 1) {
+                                // invio il messaggio di lista aggiornata di partite disponibili
+                                sprintf(buffer, MSG_SERVER_GAME_LIST);
+                                if ( send(giocatori.giocatore[i].socket, buffer, strlen(buffer), 0) < 0 ) {
+                                    perror("[Lobby] Errore nell'invio del messaggio di lista aggiornata di partite disponibili\n");
+                                    return NULL;
+                                }
+                
+                                usleep(100000); // attendo un secondo prima di inviare il messaggio
+                
+                                char *partiteDisponibili = generaStringaPartiteDisponibili();
+                                if (partiteDisponibili == NULL) {
+                                    perror("[Lobby] Errore nella generazione della stringa delle partite disponibili\n");
+                                    return NULL;
+                                }
+                                sprintf(buffer, "%s", partiteDisponibili);
+                                if ( send(giocatori.giocatore[i].socket, buffer, strlen(buffer), 0) < 0 ) {
+                                    perror("[Lobby] Errore nell'invio della lista delle partite disponibili\n");
+                                    free(partiteDisponibili);
+                                    return NULL;
+                                }
+                            }
+                        }
+
+
                         //devo attendere di nuovo che la partita termini
                         continue;
                     } 
