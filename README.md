@@ -23,15 +23,15 @@ tris-lso/
 │   └── strutture.h
 ├── README.md
 ├── docker-compose.yml
-├── eseguiWindows.bat
-├── gen.sh
-├── run.sh
+├── Windows.bat
+├── Unix.sh
 ├── runWin.ps1
-└── runmac.sh
+└── Mac.sh
 ```
 ### File Descriptions
 
 #### Client/
+- **`Comunicazione.h`**: Shared header file defining communication protocols and message formats between client and server.
 - **`client`**: Compiled executable for the client application.
 - **`client.c`**: Main source file for the client, handling communication with the server and game logic.
 - **`Dockerfile`**: Docker configuration for building the client container.
@@ -40,6 +40,7 @@ tris-lso/
 - **`strutture.h`**: Defines shared data structures used by the client.
 
 #### Server/
+- **`Comunicazione.h`**: Shared header file defining communication protocols and message formats between client and server.
 - **`server`**: Compiled executable for the server application.
 - **`server.c`**: Main source file for the server, managing connections, game sessions, and communication with clients.
 - **`Dockerfile`**: Docker configuration for building the server container.
@@ -49,11 +50,11 @@ tris-lso/
 - **`strutture.h`**: Defines shared data structures used by the server.
 
 #### Root Files
-- **`Comunicazione.h`**: Shared header file defining communication protocols and message formats between client and server.
 - **`docker-compose.yml`**: Configuration file for orchestrating the client and server containers using Docker Compose.
-- **`gen.sh`**: Script for compiling and running the project in a specific environment.
-- **`run.sh`**: Script for compiling and launching the server and clients in separate terminal windows.
-- **`runT.sh`**: Alternative script for running the server and clients, tailored for macOS environments.
+- **`Windows.bat`**: Script for compiling and launching the server and clients in windows.
+- **`Unix.sh`**: Script for compiling and running the project in a specific environment.
+- **`runWin.ps1`**: Script for compiling and launching the server and clients by Double Click on Windows.bat.
+- **`Mac.sh`**: Alternative script for running the server and clients, tailored for macOS environments.
 
 ## Project Execution
 
@@ -72,18 +73,18 @@ tris-lso/
 
    - **macOS**:
      ```
-     chmod +x runmac.sh
-     ./runmac.sh
+     chmod +x Mac.sh
+     ./Mac.sh
      ```
 
    - **Linux**:
      ```
-     chmod +x run.sh
-     ./run.sh
+     chmod +x Unix.sh
+     ./Unix.sh
      ```
 
    - **Windows**:
-     Double-click on `eseguiWindows.bat` or run PowerShell as administrator:
+     Double-click on `Windows.bat` or run PowerShell as administrator:
      ```
      .\runWin.ps1
      ```
