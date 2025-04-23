@@ -32,7 +32,6 @@ tris-lso/
 
 #### Client/
 - **`Comunicazione.h`**: Shared header file defining communication protocols and message formats between client and server.
-- **`client`**: Compiled executable for the client application.
 - **`client.c`**: Main source file for the client, handling communication with the server and game logic.
 - **`Dockerfile`**: Docker configuration for building the client container.
 - **`funzioni.c`**: Implementation of client-specific functions.
@@ -41,7 +40,6 @@ tris-lso/
 
 #### Server/
 - **`Comunicazione.h`**: Shared header file defining communication protocols and message formats between client and server.
-- **`server`**: Compiled executable for the server application.
 - **`server.c`**: Main source file for the server, managing connections, game sessions, and communication with clients.
 - **`Dockerfile`**: Docker configuration for building the server container.
 - **`funzioni/`**: Directory containing server-specific function files.
