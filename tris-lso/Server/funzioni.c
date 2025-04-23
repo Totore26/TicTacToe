@@ -173,10 +173,6 @@ int assegnazioneGiocatore(Giocatore giocatore) {
     return -1; // Non ci sono posti liberi
 }
 
-
-// ==========================================================
-//TODO MODIFICARE QUESTA FUNZIONE OPPURE ELIMINARLA
-// ==========================================================
 Partita *creaPartita(Giocatore *giocatore) {
 
     char buffer[BUFFER_SIZE];

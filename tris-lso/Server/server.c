@@ -320,6 +320,7 @@ void *threadLobby(void *arg) {
                     perror("[Lobby] Errore nell'invio del messaggio di partite non disponibili\n");
                     break;
                 }
+                giocatori.giocatore[giocatore->id].stato = 0; // metto lo stato a 0
                 usleep(100000); // attendo un secondo prima di ripetere il ciclo
                 continue;
             } else { // altrimenti invio la lista delle partite disponibili
@@ -346,7 +347,7 @@ void *threadLobby(void *arg) {
 
             if ( strcmp(buffer, MSG_CLIENT_QUIT) == 0 ) { 
                 // il giocatore ha scelto di tornare al menù principale (metto lo stato a 0)
-                giocatore->stato = 0;
+                giocatori.giocatore[giocatore->id].stato = 0;
                 continue;
             }
 
@@ -356,9 +357,11 @@ void *threadLobby(void *arg) {
                 break;
             }
 
-                    //creo il thread per la partita
+                //creo il thread per la partita
                 pthread_mutex_lock(&lobby.lobbyMutex);
                 if (lobby.partita[partitaScelta].statoPartita == PARTITA_IN_ATTESA) {
+
+                    giocatori.giocatore[giocatore->id].stato = 0; // metto lo stato a 0
 
                     sprintf(buffer, "%s",MSG_SERVER_JOIN_REQUEST);
                     if ( send(lobby.partita[partitaScelta].giocatoreAdmin.socket, buffer, strlen(buffer), 0) < 0 ) {
@@ -418,6 +421,7 @@ void *threadLobby(void *arg) {
                     }
 
                 } else { // la partita non è disponibile (es. qualcuno si è unito prima)
+                    giocatori.giocatore[giocatore->id].stato = 0;
                     sprintf(buffer, MSG_JOIN_ERROR);
                     if ( send(giocatore->socket, buffer, strlen(buffer), 0) < 0 ) {
                         perror("[Lobby] Errore nell'invio del messaggio di join error\n");
@@ -428,6 +432,8 @@ void *threadLobby(void *arg) {
                     continue;
                 }
                 pthread_mutex_unlock(&lobby.lobbyMutex);
+
+                giocatori.giocatore[giocatore->id].stato = 0;
                 
             
                 // CICLO CHE ATTENDE LA TERMINAZIONE DELLA PARTITA
