@@ -48,14 +48,6 @@ docker compose up -d --scale "$CLIENT_NAME"="$N"
 # Attendi qualche secondo per permettere la creazione dei container
 sleep 3
 
-  TERMINAL_CMD="docker attach server"
-  osascript <<EOF
-tell application "Terminal"
-  do script "$TERMINAL_CMD"
-  activate
-end tell
-EOF
-
 # Apri una finestra terminale per ogni client e fai attach
 for ((i = 1; i <= N; i++)); do
   TERMINAL_CMD="docker attach ${PROJECT_NAME}-${CLIENT_NAME}-${i}"

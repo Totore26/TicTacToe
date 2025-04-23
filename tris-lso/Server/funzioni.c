@@ -30,11 +30,13 @@ int emptyLobby() {
 const char *generaNomePartita(int id) {
     // Array di nomi predefiniti
     static const char *nomi[] = {
-        "Roma", "Milano", "Venezia", "Firenze", "Napoli",
-        "Torino", "Bologna", "Palermo", "Verona", "Genova",
-        "Pisa", "Siena", "Padova", "Trieste", "Lucca",
-        "Mantova", "Parma", "Ravenna", "Ferrara", "Perugia",
-        "Matera", "Urbino", "Assisi", "Volterra", "Amalfi"
+        "Vomero", "Acerra", "Marcianise", "Afragola", "Napoli",
+        "Caivano", "Casalnuovo", "Pomigliano", "Ercolano", "Succivo",
+        "Melito", "Marano", "Chiaiano", "Secondigliano", "Casoria",
+        "Somma", "Frattamaggiore", "Volla", "Licola", "Pozzuoli",
+        "Fuorigrotta", "Casapulla", "Aversa", "Caserta", "Pagani",
+        "Parete", "Sant'Antimo", "Nola", "San Giuseppe", "San Vitaliano",
+        "San Felice", "San Marco", "San Giorgio", "San Paolo", "San Pietro"
     };
     
     static int *nomi_usati = NULL;
