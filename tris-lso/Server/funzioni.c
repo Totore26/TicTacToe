@@ -80,7 +80,6 @@ const char *generaNomePartita(int id) {
     return nomi[indice];
 }
 
-// genera stringhe del tipo "0 1 2 3\0"
 char *generaStringaPartiteDisponibili() {
     char *partiteDisponibili = malloc(BUFFER_SIZE);
     if (partiteDisponibili == NULL) {
@@ -88,11 +87,11 @@ char *generaStringaPartiteDisponibili() {
         return NULL;
     }
     int index = 0;
-    index += snprintf(partiteDisponibili + index, BUFFER_SIZE - index, "╔════════════════════════════════════════╗\n");
-    index += snprintf(partiteDisponibili + index, BUFFER_SIZE - index, "║       PARTITE DISPONIBILI              ║\n");
-    index += snprintf(partiteDisponibili + index, BUFFER_SIZE - index, "╠════════════════════════════════════════╣\n");
-    index += snprintf(partiteDisponibili + index, BUFFER_SIZE - index, "║  NOME PARTITA         │  ID PARTITA    ║\n");
-    index += snprintf(partiteDisponibili + index, BUFFER_SIZE - index, "╠════════════════════════════════════════╣\n");
+    index += snprintf(partiteDisponibili + index, BUFFER_SIZE - index, "╔══════════════════════════════════════════════════════════╗\n");
+    index += snprintf(partiteDisponibili + index, BUFFER_SIZE - index, "║       PARTITE DISPONIBILI                                ║\n");
+    index += snprintf(partiteDisponibili + index, BUFFER_SIZE - index, "╠══════════════════════════════════════════════════════════╣\n");
+    index += snprintf(partiteDisponibili + index, BUFFER_SIZE - index, "║  NOME PARTITA         │  ID PARTITA    │  ADMIN          ║\n");
+    index += snprintf(partiteDisponibili + index, BUFFER_SIZE - index, "╠══════════════════════════════════════════════════════════╣\n");
 
     pthread_mutex_lock(&lobby.lobbyMutex);
     for (int i = 0; i < MAX_GAMES; i++) {
@@ -109,7 +108,8 @@ char *generaStringaPartiteDisponibili() {
 
             // Usa il nome della partita salvato nella struttura
             const char *nomePartita = lobby.partita[i].nomePartita;
-            index += snprintf(partiteDisponibili + index, BUFFER_SIZE - index, "║  %-20s │  %-12d  ║\n", nomePartita, i);
+            const char *nomeAdmin = lobby.partita[i].giocatoreAdmin.nome;
+            index += snprintf(partiteDisponibili + index, BUFFER_SIZE - index, "║  %-20s │  %-12d  │  %-14s ║\n", nomePartita, i, nomeAdmin);
         }
     }
     pthread_mutex_unlock(&lobby.lobbyMutex);
@@ -118,7 +118,7 @@ char *generaStringaPartiteDisponibili() {
         free(partiteDisponibili); // Libera la memoria se non ci sono partite disponibili
         return MSG_NO_GAME; // se non ci sono partite disponibili
     }
-    index += snprintf(partiteDisponibili + index, BUFFER_SIZE - index, "╚════════════════════════════════════════╝\n");
+    index += snprintf(partiteDisponibili + index, BUFFER_SIZE - index, "╚══════════════════════════════════════════════════════════╝\n");
     return partiteDisponibili;
 }
 

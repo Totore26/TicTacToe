@@ -12,9 +12,14 @@
 #include "Comunicazione.h"
 
 #define UNUSED(x) (void)(x)
+#define MAX_NAME_LENGTH 50
+
 
 Lobby lobby;
 Giocatori giocatori;
+
+
+
 
 //dichiarazioni di funzioni
 void *threadLobby(void *arg);
@@ -98,6 +103,21 @@ int main() {
         }
         printf("Un nuovo giocatore è connesso al server.\n");
 
+        // Ricevi il nome del giocatore
+        char nome[MAX_NAME_LENGTH];
+        memset(nome, 0, sizeof(nome));
+        if (recv(nuovaSocket, nome, sizeof(nome), 0) <= 0) {
+            perror("Errore nella ricezione del nome del giocatore");
+            close(nuovaSocket);
+            continue;
+        }
+
+        // Aggiungi il nome all'array
+
+        // Invia conferma al client
+        char conferma[] = "Utente si è registrato";
+        send(nuovaSocket, conferma, strlen(conferma), 0);
+
         Giocatore *giocatore = malloc(sizeof(Giocatore)); //alloco il nuovo giocatore
         if (giocatore == NULL) {
             perror("Errore nell'allocazione della memoria\n");
@@ -107,6 +127,9 @@ int main() {
         giocatore->socket = nuovaSocket; //salvo la socket del giocatore 
 
         giocatore->id = assegnazioneGiocatore(*giocatore); //inserisce il giocatore nella lista dei giocatori connessi
+        strcpy(giocatore->nome, nome); // Copia il nome nella memoria allocata        
+        
+        
         
         //mando il giocatore nella lobby
         pthread_t thread;

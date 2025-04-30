@@ -66,6 +66,7 @@ void attendo_invio()
 void funzione_menu()
 {
     char input[MAXSCRITTORE];
+    char buffer[MAXLETTORE];
 
     while (1)
     {
@@ -81,11 +82,14 @@ void funzione_menu()
         printf("╚════════════════════════════════╝\n");
         printf(" Scegli un'opzione-> ");
 
+
+
         memset(input, 0, MAXSCRITTORE);
         if (fgets(input, MAXSCRITTORE, stdin) == NULL)
         {
             continue;
         }
+        
 
         // Rimuove il newline
         input[strcspn(input, "\n")] = 0;
