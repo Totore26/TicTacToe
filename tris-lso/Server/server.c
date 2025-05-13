@@ -103,21 +103,6 @@ int main() {
         }
         printf("Un nuovo giocatore è connesso al server.\n");
 
-        // Ricevi il nome del giocatore
-        char nome[MAX_NAME_LENGTH];
-        memset(nome, 0, sizeof(nome));
-        if (recv(nuovaSocket, nome, sizeof(nome), 0) <= 0) {
-            perror("Errore nella ricezione del nome del giocatore");
-            close(nuovaSocket);
-            continue;
-        }
-
-        // Aggiungi il nome all'array
-
-        // Invia conferma al client
-        char conferma[] = "Utente si è registrato";
-        send(nuovaSocket, conferma, strlen(conferma), 0);
-
         Giocatore *giocatore = malloc(sizeof(Giocatore)); //alloco il nuovo giocatore
         if (giocatore == NULL) {
             perror("Errore nell'allocazione della memoria\n");
@@ -127,7 +112,6 @@ int main() {
         giocatore->socket = nuovaSocket; //salvo la socket del giocatore 
 
         giocatore->id = assegnazioneGiocatore(*giocatore); //inserisce il giocatore nella lista dei giocatori connessi
-        strcpy(giocatore->nome, nome); // Copia il nome nella memoria allocata        
         
         
         
@@ -157,6 +141,27 @@ void *threadLobby(void *arg) {
     Giocatore *giocatore = (Giocatore *)arg; //estraggo i dati
     char buffer[BUFFER_SIZE]; 
     memset(buffer, 0, sizeof(buffer));
+
+
+    // Ricevi il nome del giocatore
+    char nome[MAX_NAME_LENGTH];
+    memset(nome, 0, sizeof(nome));
+    if (recv(giocatore->socket, nome, sizeof(nome), 0) <= 0) {
+        perror("Errore nella ricezione del nome del giocatore");
+        close(giocatore->socket);
+        exit(EXIT_FAILURE);
+    }
+
+    // Aggiungi il nome all'array
+
+    // Invia conferma al client
+    char conferma[] = "Utente si è registrato";
+    send(giocatore->socket, conferma, strlen(conferma), 0);
+    
+    strcpy(giocatore->nome, nome); // Copia il nome nella memoria allocata        
+    
+    usleep(100000); // attendo un secondo prima di 
+
 
     // Ciclo della lobby (quando esco si chiude il giocatore e il thread) (quando entro mostra il menu)
     while (1) {
