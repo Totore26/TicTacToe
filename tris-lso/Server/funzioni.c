@@ -10,6 +10,50 @@ extern Lobby lobby;
 extern Giocatori giocatori;
 
 
+#define MAX_REGISTERED_PLAYERS MAX_CLIENTS
+#define MAX_NAME_LENGTH 50
+
+// Array globale per i nomi registrati
+char nomiRegistrati[MAX_REGISTERED_PLAYERS][MAX_NAME_LENGTH];
+int numeroNomiRegistrati = 0;
+
+// ==========================================================
+// FUNZIONI PER GESTIRE LA REGISTRAZIONE DEI NOMI
+// ==========================================================
+
+int nomeDuplicato(const char *nome) {
+    for (int i = 0; i < numeroNomiRegistrati; i++) {
+        if (strcmp(nomiRegistrati[i], nome) == 0) {
+            return 1; // Nome duplicato
+        }
+    }
+    return 0; // Nome non duplicato
+}
+
+void aggiungiNome(const char *nome) {
+    if (numeroNomiRegistrati < MAX_REGISTERED_PLAYERS) {
+        strncpy(nomiRegistrati[numeroNomiRegistrati], nome, MAX_NAME_LENGTH - 1);
+        nomiRegistrati[numeroNomiRegistrati][MAX_NAME_LENGTH - 1] = '\0'; // Assicurati che sia terminato
+        numeroNomiRegistrati++;
+    }
+}
+
+void rimuoviNome(const char *nome) {
+    for (int i = 0; i < numeroNomiRegistrati; i++) {
+        if (strcmp(nomiRegistrati[i], nome) == 0) {
+            // Sposta gli elementi successivi indietro di una posizione
+            for (int j = i; j < numeroNomiRegistrati - 1; j++) {
+                strncpy(nomiRegistrati[j], nomiRegistrati[j + 1], MAX_NAME_LENGTH);
+            }
+            numeroNomiRegistrati--;
+            break;
+        }
+    }
+}
+
+
+
+
 // ==========================================================
 // FUNZIONI PER GESTIRE LA LOBBY
 // ==========================================================

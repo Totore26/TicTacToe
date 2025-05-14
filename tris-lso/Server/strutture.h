@@ -7,7 +7,7 @@
 #define MAX_CLIENTS     (MAX_GAMES * 2)
 #define SIZE            3                   // Dimensione della griglia
 #define PORT            8080
-#define BUFFER_SIZE     2044
+#define BUFFER_SIZE     4096
 
 // STATO PARTITA
 #define PARTITA_IN_CORSO            0       // quando la partita è in corso

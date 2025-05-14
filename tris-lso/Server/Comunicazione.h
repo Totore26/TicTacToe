@@ -26,6 +26,9 @@
 
 
 // ========== MESSAGGI INVIATI DAL SERVER ==========
+#define MSG_SERVER_INVALID_NAME_ERROR "INVALID NAME"//Nome già utilizzato o vuoto
+
+#define MSG_SERVER_REGISTRATION_OK "REGISTRATION_COMPLETED" //Registrazione completata con successo
 
 #define MSG_SERVER_MENU             "MENU"  // per stampare il menu di benvenuto (unisciti, partecipa, esci)
 

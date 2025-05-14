@@ -3,9 +3,9 @@
 #include "Comunicazione.h"
 
 //dimensioni buffer per leggere e scrivere sulla socket
-#define MAXLETTORE 2048
+#define MAXLETTORE 4096
 #define MAXSCRITTORE 16
-#define BUFFER_SIZE 2048 
+#define BUFFER_SIZE 4096 
 
 //serve alla funzione partita per gestire gli input
 enum tipo_giocatore

@@ -1,6 +1,14 @@
 #include "strutture.h"
-extern Lobby lobby;
+#define MAX_REGISTERED_PLAYERS MAX_CLIENTS
+#define MAX_NAME_LENGTH 50
 
+extern Lobby lobby;
+extern char nomiRegistrati[MAX_REGISTERED_PLAYERS][MAX_NAME_LENGTH];
+extern int numeroNomiRegistrati;
+
+int nomeDuplicato(const char *nome);
+void aggiungiNome(const char *nome);
+void rimuoviNome(const char *nome);
 int emptyLobby();
 const char *generaNomePartita(int id);
 char *generaStringaPartiteDisponibili();

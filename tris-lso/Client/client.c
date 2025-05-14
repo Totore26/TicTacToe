@@ -17,26 +17,37 @@ int main() {
     }
 
     char nome[50];
-    // Chiedi all'utente di registrarsi con un nome
-    printf("Inserisci il tuo nome: ");
+    while (1) { // Ciclo per assicurarsi che il nome sia valido
+        // Chiedi all'utente di registrarsi con un nome
+        printf("Inserisci il tuo nome: ");
         fgets(nome, sizeof(nome), stdin);
         nome[strcspn(nome, "\n")] = 0; // Rimuove il newline
 
-        if (strlen(nome) > 0) {
-            // Invia il nome al server
-            send(sd, nome, strlen(nome), 0);
+        if (strlen(nome) == 0) {
+            printf("Il nome non può essere vuoto. Riprova.\n");
+            continue; // Torna all'inizio del ciclo per chiedere un nuovo nome
+        }
 
-            // Ricevi conferma dal server
-            memset(buffer, 0, sizeof(buffer));
-            if (recv(sd, buffer, sizeof(buffer), 0) > 0) {
-                printf("%s\n", buffer); // Stampa il messaggio di conferma
-                sleep(3);
-            } else {
-                printf("Errore nella registrazione. Riprova.\n");
+        // Invia il nome al server
+        send(sd, nome, strlen(nome), 0);
+
+        // Ricevi conferma dal server
+        memset(buffer, 0, sizeof(buffer));
+        if (recv(sd, buffer, sizeof(buffer), 0) > 0) {
+            if (strcmp(buffer, MSG_SERVER_INVALID_NAME_ERROR) == 0) {
+                printf("Nome non valido o già in uso. Riprova.\n");
+                continue; // Torna all'inizio del ciclo per chiedere un nuovo nome
+            } else if (strcmp(buffer, MSG_SERVER_REGISTRATION_OK) == 0) {
+                printf("REGISTAZIONE COMPLETATA!\n"); // stampa il messaggio di conferma
+                sleep(2);
+                break; // Esci dal ciclo se la registrazione è avvenuta con successo
             }
         } else {
-            printf("Il nome non può essere vuoto. Riprova.\n");
+            printf("Errore nella comunicazione con il server. Riprova.\n");
         }
+    }
+    
+
     
 
 

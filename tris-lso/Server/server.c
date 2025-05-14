@@ -20,7 +20,6 @@ Giocatori giocatori;
 
 
 
-
 //dichiarazioni di funzioni
 void *threadLobby(void *arg);
 void *threadPartita(void *arg);
@@ -143,25 +142,39 @@ void *threadLobby(void *arg) {
     memset(buffer, 0, sizeof(buffer));
 
 
-    // Ricevi il nome del giocatore
+    // Ricevi il nome del giocatoreù
     char nome[MAX_NAME_LENGTH];
-    memset(nome, 0, sizeof(nome));
-    if (recv(giocatore->socket, nome, sizeof(nome), 0) <= 0) {
-        perror("Errore nella ricezione del nome del giocatore");
-        close(giocatore->socket);
-        exit(EXIT_FAILURE);
+    while (1) { // Ciclo per assicurarsi che il nome sia valido
+        memset(nome, 0, sizeof(nome));
+        printf("\n\n\nAttendo il nome del giocatore...\n");
+
+        if (recv(giocatore->socket, nome, sizeof(nome), 0) <= 0) {
+            perror("Errore nella ricezione del nome del giocatore");
+            close(giocatore->socket);
+            free(giocatore);
+            pthread_exit(NULL);
+        }
+    
+        // Controlla se il nome è vuoto
+        if (strlen(nome) == 0) {
+            send(giocatore->socket, MSG_SERVER_INVALID_NAME_ERROR, strlen(MSG_SERVER_INVALID_NAME_ERROR), 0);
+            continue; // Torna all'inizio del ciclo per chiedere un nuovo nome
+        }
+    
+        // Controlla se il nome è già in uso
+        if (nomeDuplicato(nome)) {
+            send(giocatore->socket, MSG_SERVER_INVALID_NAME_ERROR, strlen(MSG_SERVER_INVALID_NAME_ERROR), 0);
+            continue; // Torna all'inizio del ciclo per chiedere un nuovo nome
+        }
+    
+        // Nome valido, aggiungilo all'array e esci dal ciclo
+        aggiungiNome(nome);
+        strcpy(giocatore->nome, nome);
+        send(giocatore->socket, MSG_SERVER_REGISTRATION_OK, strlen(MSG_SERVER_REGISTRATION_OK), 0);
+        break;
     }
 
-    // Aggiungi il nome all'array
-
-    // Invia conferma al client
-    char conferma[] = "Utente si è registrato";
-    send(giocatore->socket, conferma, strlen(conferma), 0);
-    
-    strcpy(giocatore->nome, nome); // Copia il nome nella memoria allocata        
-    
-    usleep(100000); // attendo un secondo prima di 
-
+usleep(100000); // attendo un secondo prima di continuare
 
     // Ciclo della lobby (quando esco si chiude il giocatore e il thread) (quando entro mostra il menu)
     while (1) {
@@ -554,7 +567,7 @@ void *threadLobby(void *arg) {
         }
     }
     // Chiudo la connessione e libero la memoria
-               
+    rimuoviNome(giocatore->nome);
     giocatori.giocatore[giocatore->id].socket = -1; // rimuovo il giocatore dalla lista dei giocatori connessi
     close(giocatore->socket);
     free(giocatore);
@@ -891,9 +904,3 @@ void *threadPartita(void *arg) {
     pthread_exit(NULL);
     
 }
-
-
-
-
-
-
