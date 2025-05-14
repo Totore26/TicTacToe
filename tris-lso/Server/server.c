@@ -171,13 +171,31 @@ void *threadLobby(void *arg) {
         aggiungiNome(nome);
         strcpy(giocatore->nome, nome);
         send(giocatore->socket, MSG_SERVER_REGISTRATION_OK, strlen(MSG_SERVER_REGISTRATION_OK), 0);
-        break;
+
+        // Notifica tutti i client nel menu principale della nuova registrazione
+        for (int i = 0; i < MAX_CLIENTS; i++) {
+                if (giocatori.giocatore[i].socket != -1 &&
+                    giocatori.giocatore[i].stato == 2 && // nel menu principale
+                    giocatori.giocatore[i].socket != giocatore->socket) // non notificare se stesso
+                {
+                    char notify[128];
+                    printf("[DEBUG] Invio notifica di nuova registrazione a %s (socket %d)\n", giocatori.giocatore[i].nome, giocatori.giocatore[i].socket);
+                    snprintf(notify, sizeof(notify), "%s:%s", MSG_NEW_USER_REGISTERED , giocatore->nome);
+                    send(giocatori.giocatore[i].socket, notify, strlen(notify), 0);
+                }
+            }            
+            
+            
+            break;
     }
 
-usleep(100000); // attendo un secondo prima di continuare
+    usleep(100000); // attendo un secondo prima di continuare
 
     // Ciclo della lobby (quando esco si chiude il giocatore e il thread) (quando entro mostra il menu)
     while (1) {
+
+
+        giocatori.giocatore[giocatore->id].stato = 2; // metto lo stato a 2 (nel menu principale)
 
         // invio il messaggio di scelta
         sprintf(buffer, MSG_SERVER_MENU);
@@ -192,6 +210,8 @@ usleep(100000); // attendo un secondo prima di continuare
             perror("[Lobby] Errore nella ricezione della scelta del giocatore\n");
             break;
         }
+        
+        giocatori.giocatore[giocatore->id].stato = 0; // metto lo stato a 0 (non nel menu principale)
 
         // il giocatore ha scelto di creare una partita 
         if ( strcmp( buffer, MSG_CLIENT_CREAATE ) == 0 ) { 
@@ -569,6 +589,19 @@ usleep(100000); // attendo un secondo prima di continuare
     // Chiudo la connessione e libero la memoria
     rimuoviNome(giocatore->nome);
     giocatori.giocatore[giocatore->id].socket = -1; // rimuovo il giocatore dalla lista dei giocatori connessi
+
+    // Notifica tutti i client nel menu principale della disconnessione
+    for (int i = 0; i < MAX_CLIENTS; i++) {
+        if (giocatori.giocatore[i].socket != -1 &&
+            giocatori.giocatore[i].stato == 2 && // nel menu principale
+            giocatori.giocatore[i].socket != giocatore->socket) // non notificare se stesso
+        {
+            char notify[128];
+            printf("[DEBUG] Invio notifica di disconnessione di %s (socket %d)\n", giocatore->nome, giocatori.giocatore[i].socket);
+            snprintf(notify, sizeof(notify), "%s:%s", MSG_USER_DISCONNECTED, giocatore->nome);
+            send(giocatori.giocatore[i].socket, notify, strlen(notify), 0);
+        }
+    }
     close(giocatore->socket);
     free(giocatore);
     pthread_exit(NULL);

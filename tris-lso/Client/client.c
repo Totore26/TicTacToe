@@ -39,7 +39,7 @@ int main() {
                 continue; // Torna all'inizio del ciclo per chiedere un nuovo nome
             } else if (strcmp(buffer, MSG_SERVER_REGISTRATION_OK) == 0) {
                 printf("REGISTAZIONE COMPLETATA!\n"); // stampa il messaggio di conferma
-                sleep(2);
+                sleep(1);
                 break; // Esci dal ciclo se la registrazione è avvenuta con successo
             }
         } else {

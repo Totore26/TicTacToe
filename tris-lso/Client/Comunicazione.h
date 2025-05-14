@@ -30,6 +30,10 @@
 
 #define MSG_SERVER_REGISTRATION_OK "REGISTRATION_COMPLETED" //Registrazione completata con successo
 
+#define MSG_NEW_USER_REGISTERED "NEW_USER_REGISTERED" // Notifica nuova registrazione utente
+
+#define MSG_USER_DISCONNECTED "USER_DISCONNECTED" //Notifica quando un giocatore si disconnette
+
 #define MSG_SERVER_MENU             "MENU"  // per stampare il menu di benvenuto (unisciti, partecipa, esci)
 
 #define MSG_SERVER_START            "START" // entrambi i giocatori sono pronti, inizia la partita

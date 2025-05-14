@@ -67,58 +67,91 @@ void funzione_menu()
 {
     char input[MAXSCRITTORE];
     char buffer[MAXLETTORE];
+    CLEAR_SCREEN();
+
+    printf("\n");
+    printf("╔════════════════════════════════╗\n");
+    printf("║        MENU PRINCIPALE         ║\n");
+    printf("╠════════════════════════════════╣\n");
+    printf("║  1. Crea partita               ║\n");
+    printf("║  2. Unisciti a partita         ║\n");
+    printf("║  3. Esci                       ║\n");
+    printf("╚════════════════════════════════╝\n");
+    printf(" Scegli un'opzione-> ");
 
     while (1)
     {
+        fflush(stdout);
 
-        CLEAR_SCREEN();
-        printf("\n");
-        printf("╔════════════════════════════════╗\n");
-        printf("║        MENU PRINCIPALE         ║\n");
-        printf("╠════════════════════════════════╣\n");
-        printf("║  1. Crea partita               ║\n");
-        printf("║  2. Unisciti a partita         ║\n");
-        printf("║  3. Esci                       ║\n");
-        printf("╚════════════════════════════════╝\n");
-        printf(" Scegli un'opzione-> ");
+        // Usa select per ascoltare sia stdin che il socket
+        fd_set readfds;
+        FD_ZERO(&readfds);
+        FD_SET(STDIN_FILENO, &readfds);
+        FD_SET(sd, &readfds);
+        int maxfd = sd > STDIN_FILENO ? sd : STDIN_FILENO;
 
-
-
-        memset(input, 0, MAXSCRITTORE);
-        if (fgets(input, MAXSCRITTORE, stdin) == NULL)
-        {
+        int ready = select(maxfd + 1, &readfds, NULL, NULL, NULL);
+        if (ready < 0) {
+            perror("select error");
             continue;
         }
-        
 
-        // Rimuove il newline
-        input[strcspn(input, "\n")] = 0;
+// Notifica dal server
+if (FD_ISSET(sd, &readfds)) {
+    memset(buffer, 0, MAXLETTORE);
+    ssize_t n = recv(sd, buffer, MAXLETTORE, 0);
+    if (n <= 0) {
+        printf("Connessione al server persa.\n");
+        exit(EXIT_FAILURE);
+    }
+    // Gestisci la notifica di nuova registrazione
+    if (strncmp(buffer, MSG_NEW_USER_REGISTERED, strlen(MSG_NEW_USER_REGISTERED)) == 0) {
+        char *nome = strchr(buffer, ':');
+        if (nome) nome++;
+        else nome = "Un nuovo utente";
+        printf("\n 🔔 Nuovo utente registrato: %s\n", nome);
+        printf(" Scegli un'opzione-> ");
+        fflush(stdout);
+    } 
+    // Gestisci la notifica di disconnessione
+    else if (strncmp(buffer, MSG_USER_DISCONNECTED, strlen(MSG_USER_DISCONNECTED)) == 0) {
+        char *nome = strchr(buffer, ':');
+        if (nome) nome++;
+        else nome = "Un utente";
+        printf("\n 🔔 Utente disconnesso: %s\n", nome);
+        printf(" Scegli un'opzione-> ");
+        fflush(stdout);
+    } 
+    else if (strcmp(buffer, MSG_SERVER_MENU) == 0) {
+        // Ignora, già nel menu
+    }
+    continue;
+}
 
-        if (strcmp(input, "1") == 0)
-        {
-            // Invia richiesta di creazione partita
-            send(sd, MSG_CLIENT_CREAATE, strlen(MSG_CLIENT_CREAATE), 0);
-            funzione_crea_partita();
-            break;
-        }
-        else if (strcmp(input, "2") == 0)
-        {
-            // Invia richiesta di unione a partita
-            send(sd, MSG_CLIENT_JOIN, strlen(MSG_CLIENT_JOIN), 0);
-            funzione_entra_partita();
-            break;
-        }
-        else if (strcmp(input, "3") == 0)
-        {
-            // Invia richiesta di uscita
-            send(sd, MSG_CLIENT_QUIT, strlen(MSG_CLIENT_QUIT), 0);
-            close(sd);
-            exit(EXIT_SUCCESS);
-        }
-        else
-        {
-            printf("Scelta non valida. Riprova...\n");
-            usleep(800000);
+        // Input utente
+        if (FD_ISSET(STDIN_FILENO, &readfds)) {
+            memset(input, 0, MAXSCRITTORE);
+            if (fgets(input, MAXSCRITTORE, stdin) == NULL) {
+                continue;
+            }
+            input[strcspn(input, "\n")] = 0;
+
+            if (strcmp(input, "1") == 0) {
+                send(sd, MSG_CLIENT_CREAATE, strlen(MSG_CLIENT_CREAATE), 0);
+                funzione_crea_partita();
+                break;
+            } else if (strcmp(input, "2") == 0) {
+                send(sd, MSG_CLIENT_JOIN, strlen(MSG_CLIENT_JOIN), 0);
+                funzione_entra_partita();
+                break;
+            } else if (strcmp(input, "3") == 0) {
+                send(sd, MSG_CLIENT_QUIT, strlen(MSG_CLIENT_QUIT), 0);
+                close(sd);
+                exit(EXIT_SUCCESS);
+            } else {
+                printf("Scelta non valida. Riprova...\n");
+                usleep(800000);
+            }
         }
     }
 }
