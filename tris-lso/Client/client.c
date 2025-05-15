@@ -62,7 +62,7 @@ int main() {
         }
 
         // Controlla il messaggio ricevuto
-        if (strcmp(buffer, MSG_SERVER_MENU) == 0) {
+        if (strstr(buffer, MSG_SERVER_MENU) != NULL) {
             funzione_menu();
         }
     }

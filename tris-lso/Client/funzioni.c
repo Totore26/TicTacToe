@@ -1,6 +1,9 @@
 #include "funzioni.h"
 #include "strutture.h"
-
+#define MAX_NOTIFICHE 5 // Numero massimo di notifiche da mostrare
+#define MAX_LUNGHEZZA_NOTIFICA 30 // Lunghezza massima per ogni notifica
+char notifiche[MAX_NOTIFICHE][128]; // Array per memorizzare le notifiche
+int indiceNotifica = 0; // Indice per la prossima notifica
 // ==========================================================
 //  FUNZIONE PER CONNESSIONE CON IL SERVER
 // ==========================================================
@@ -63,54 +66,72 @@ void attendo_invio()
         ; // blocca fino a Invio
 }
 
+void aggiungi_notifica(const char *messaggio) {
+    snprintf(notifiche[indiceNotifica], sizeof(notifiche[indiceNotifica]), "%s", messaggio);
+    indiceNotifica = (indiceNotifica + 1) % MAX_NOTIFICHE; // Incrementa l'indice in modo circolare
+}
+
 void gestisci_notifica_server(const char *buffer) {
-    // Gestisci la notifica di nuova registrazione
+    char messaggio[128];
+
     if (strncmp(buffer, MSG_NEW_USER_REGISTERED, strlen(MSG_NEW_USER_REGISTERED)) == 0) {
         char *nome = strchr(buffer, ':');
         if (nome) nome++;
         else nome = "Un nuovo utente";
-        printf("\n 🔔 Nuovo utente registrato: %s\n", nome);
+        snprintf(messaggio, sizeof(messaggio), "🔔 Nuovo utente registrato: %s", nome);
+        aggiungi_notifica(messaggio);
     } 
-    // Gestisci la notifica di disconnessione
     else if (strncmp(buffer, MSG_USER_DISCONNECTED, strlen(MSG_USER_DISCONNECTED)) == 0) {
         char *nome = strchr(buffer, ':');
         if (nome) nome++;
         else nome = "Un utente";
-        printf("\n 🔔 Utente disconnesso: %s\n", nome);
+        snprintf(messaggio, sizeof(messaggio), "🚪 Utente disconnesso: %s", nome);
+        aggiungi_notifica(messaggio);
     } 
-    // Gestisci la notifica di creazione di una nuova partita
     else if (strncmp(buffer, MSG_NEW_GAME_CREATED, strlen(MSG_NEW_GAME_CREATED)) == 0) {
         char *nomeAdmin = strchr(buffer, ':');
-        if (nomeAdmin) nomeAdmin++; // Sposta il puntatore dopo il ':'
-        else nomeAdmin = "Sconosciuto"; // Valore di fallback se il nome non è presente
-        printf("\n 🔔 Nuova partita creata da %s\n", nomeAdmin);
+        if (nomeAdmin) nomeAdmin++;
+        else nomeAdmin = "Sconosciuto";
+        snprintf(messaggio, sizeof(messaggio), "✨ Nuova partita creata da %s", nomeAdmin);
+        aggiungi_notifica(messaggio);
     }
     else if (strcmp(buffer, MSG_SERVER_MENU) == 0) {
-        // Ignora, già nel menu
         return;
     }
+
     printf(" Scegli un'opzione-> ");
     fflush(stdout);
 }
 
-void funzione_menu()
-{
+void funzione_menu() {
     char input[MAXSCRITTORE];
     char buffer[MAXLETTORE];
     CLEAR_SCREEN();
 
-    printf("\n");
-    printf("╔════════════════════════════════╗\n");
-    printf("║        MENU PRINCIPALE         ║\n");
-    printf("╠════════════════════════════════╣\n");
-    printf("║  1. Crea partita               ║\n");
-    printf("║  2. Unisciti a partita         ║\n");
-    printf("║  3. Esci                       ║\n");
-    printf("╚════════════════════════════════╝\n");
-    printf(" Scegli un'opzione-> ");
+    while (1) {
+        CLEAR_SCREEN();
 
-    while (1)
-    {
+        // Stampa le notifiche come elenco semplice
+        printf("\nNOTIFICHE RECENTI:\n");
+        for (int i = 0; i < MAX_NOTIFICHE; i++) {
+            int index = (indiceNotifica + i) % MAX_NOTIFICHE;
+            if (strlen(notifiche[index]) > 0) {
+                printf("- %s\n", notifiche[index]);
+            }
+        }
+        printf("\n");
+        // Stampa il menu principale
+        printf("\n");
+        printf("╔════════════════════════════════╗\n");
+        printf("║        MENU PRINCIPALE         ║\n");
+        printf("╠════════════════════════════════╣\n");
+        printf("║  1. Crea partita               ║\n");
+        printf("║  2. Unisciti a partita         ║\n");
+        printf("║  3. Esci                       ║\n");
+        printf("╚════════════════════════════════╝\n");
+        printf(" Scegli un'opzione-> ");
+
+
         fflush(stdout);
 
         // Usa select per ascoltare sia stdin che il socket
@@ -165,7 +186,6 @@ void funzione_menu()
         }
     }
 }
-
 // ==========================================================
 //  FUNZIONE PER GESTIRE LA CREAZIONE DELLA PARTITA
 // ==========================================================

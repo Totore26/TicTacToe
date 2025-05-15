@@ -11,7 +11,6 @@
 #include "funzioni.h"
 #include "Comunicazione.h"
 
-#define UNUSED(x) (void)(x)
 #define MAX_NAME_LENGTH 50
 
 
@@ -24,8 +23,7 @@ Giocatori giocatori;
 void *threadLobby(void *arg);
 void *threadPartita(void *arg);
 
-void sigHandler(int signum) {
-    UNUSED(signum);  // Properly mark parameter as unused
+void sigHandler() {
     
     printf("\nServer in chiusura...\n");
     // Chiudo tutte le partite in corso
