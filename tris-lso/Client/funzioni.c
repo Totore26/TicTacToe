@@ -63,6 +63,29 @@ void attendo_invio()
         ; // blocca fino a Invio
 }
 
+void gestisci_notifica_server(const char *buffer) {
+    // Gestisci la notifica di nuova registrazione
+    if (strncmp(buffer, MSG_NEW_USER_REGISTERED, strlen(MSG_NEW_USER_REGISTERED)) == 0) {
+        char *nome = strchr(buffer, ':');
+        if (nome) nome++;
+        else nome = "Un nuovo utente";
+        printf("\n 🔔 Nuovo utente registrato: %s\n", nome);
+    } 
+    // Gestisci la notifica di disconnessione
+    else if (strncmp(buffer, MSG_USER_DISCONNECTED, strlen(MSG_USER_DISCONNECTED)) == 0) {
+        char *nome = strchr(buffer, ':');
+        if (nome) nome++;
+        else nome = "Un utente";
+        printf("\n 🔔 Utente disconnesso: %s\n", nome);
+    } 
+    else if (strcmp(buffer, MSG_SERVER_MENU) == 0) {
+        // Ignora, già nel menu
+        return;
+    }
+    printf(" Scegli un'opzione-> ");
+    fflush(stdout);
+}
+
 void funzione_menu()
 {
     char input[MAXSCRITTORE];
@@ -96,37 +119,17 @@ void funzione_menu()
             continue;
         }
 
-// Notifica dal server
-if (FD_ISSET(sd, &readfds)) {
-    memset(buffer, 0, MAXLETTORE);
-    ssize_t n = recv(sd, buffer, MAXLETTORE, 0);
-    if (n <= 0) {
-        printf("Connessione al server persa.\n");
-        exit(EXIT_FAILURE);
-    }
-    // Gestisci la notifica di nuova registrazione
-    if (strncmp(buffer, MSG_NEW_USER_REGISTERED, strlen(MSG_NEW_USER_REGISTERED)) == 0) {
-        char *nome = strchr(buffer, ':');
-        if (nome) nome++;
-        else nome = "Un nuovo utente";
-        printf("\n 🔔 Nuovo utente registrato: %s\n", nome);
-        printf(" Scegli un'opzione-> ");
-        fflush(stdout);
-    } 
-    // Gestisci la notifica di disconnessione
-    else if (strncmp(buffer, MSG_USER_DISCONNECTED, strlen(MSG_USER_DISCONNECTED)) == 0) {
-        char *nome = strchr(buffer, ':');
-        if (nome) nome++;
-        else nome = "Un utente";
-        printf("\n 🔔 Utente disconnesso: %s\n", nome);
-        printf(" Scegli un'opzione-> ");
-        fflush(stdout);
-    } 
-    else if (strcmp(buffer, MSG_SERVER_MENU) == 0) {
-        // Ignora, già nel menu
-    }
-    continue;
-}
+        // Notifica dal server
+        if (FD_ISSET(sd, &readfds)) {
+            memset(buffer, 0, MAXLETTORE);
+            ssize_t n = recv(sd, buffer, MAXLETTORE, 0);
+            if (n <= 0) {
+                printf("Connessione al server persa.\n");
+                exit(EXIT_FAILURE);
+            }
+            gestisci_notifica_server(buffer);
+            continue;
+        }
 
         // Input utente
         if (FD_ISSET(STDIN_FILENO, &readfds)) {
