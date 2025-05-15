@@ -92,7 +92,7 @@ void gestisci_notifica_server(const char *buffer) {
         char *nomeAdmin = strchr(buffer, ':');
         if (nomeAdmin) nomeAdmin++;
         else nomeAdmin = "Sconosciuto";
-        snprintf(messaggio, sizeof(messaggio), "✨ Nuova partita creata da %s", nomeAdmin);
+        snprintf(messaggio, sizeof(messaggio), "🎮 Nuova partita creata da %s", nomeAdmin);
         aggiungi_notifica(messaggio);
     }
     else if (strcmp(buffer, MSG_SERVER_MENU) == 0) {
