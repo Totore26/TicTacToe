@@ -324,6 +324,7 @@ void *threadLobby(void *arg) {
                             free(giocatore);
                             pthread_exit(NULL);
                         }
+
                         
                         // invio a tutti i client che guardano la lista delle partite disponibili quella aggiornata con la nuova partita:
                         for (int i = 0; i < MAX_CLIENTS; i++) {
@@ -335,6 +336,7 @@ void *threadLobby(void *arg) {
                                     return NULL;
                                 }
                 
+                                notificaNuovaPartita(&giocatori, partita, nuovoId);
                                 usleep(100000); // attendo un secondo prima di inviare il messaggio
                 
                                 char *partiteDisponibili = generaStringaPartiteDisponibili();
@@ -529,6 +531,7 @@ void *threadLobby(void *arg) {
                                 free(giocatore);
                                 pthread_exit(NULL);
                             }
+
 
                         // invio a tutti i client che guardano la lista delle partite disponibili quella aggiornata con la nuova partita:
                         for (int i = 0; i < MAX_CLIENTS; i++) {
