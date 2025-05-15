@@ -238,6 +238,9 @@ void *threadLobby(void *arg) {
                 lobby.partita[nuovoId] = *partita; 
                 pthread_mutex_unlock(&lobby.lobbyMutex);
 
+                // Notifica a tutti i client nel menu principale della nuova partita
+                notificaNuovaPartita(&giocatori, partita, nuovoId);
+
                 // invio il messaggio di attesa al giocatore admin
                 sprintf(buffer, MSG_WAITING_PLAYER);
                 if ( send(giocatore->socket, buffer, strlen(buffer), 0) < 0 ) {

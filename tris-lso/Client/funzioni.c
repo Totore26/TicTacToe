@@ -78,6 +78,13 @@ void gestisci_notifica_server(const char *buffer) {
         else nome = "Un utente";
         printf("\n 🔔 Utente disconnesso: %s\n", nome);
     } 
+    // Gestisci la notifica di creazione di una nuova partita
+    else if (strncmp(buffer, MSG_NEW_GAME_CREATED, strlen(MSG_NEW_GAME_CREATED)) == 0) {
+        char *nomeAdmin = strchr(buffer, ':');
+        if (nomeAdmin) nomeAdmin++; // Sposta il puntatore dopo il ':'
+        else nomeAdmin = "Sconosciuto"; // Valore di fallback se il nome non è presente
+        printf("\n 🔔 Nuova partita creata da %s\n", nomeAdmin);
+    }
     else if (strcmp(buffer, MSG_SERVER_MENU) == 0) {
         // Ignora, già nel menu
         return;

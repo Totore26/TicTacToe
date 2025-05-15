@@ -11,6 +11,7 @@ void aggiungiNome(const char *nome);
 void rimuoviNome(const char *nome);
 void notificaNuovaRegistrazione(Giocatori *giocatori, Giocatore *giocatore);
 void notificaDisconnessione(Giocatori *giocatori, Giocatore *giocatore);
+void notificaNuovaPartita(Giocatori *giocatori, Partita *partita, int idPartita);
 int emptyLobby();
 const char *generaNomePartita(int id);
 char *generaStringaPartiteDisponibili();

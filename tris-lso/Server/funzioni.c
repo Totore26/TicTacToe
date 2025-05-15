@@ -84,6 +84,26 @@ void notificaDisconnessione(Giocatori *giocatori, Giocatore *giocatore) {
     }
 }
 
+void notificaNuovaPartita(Giocatori *giocatori, Partita *partita, int idPartita) {
+    for (int i = 0; i < MAX_CLIENTS; i++) {
+        if (giocatori->giocatore[i].socket != -1 &&
+            giocatori->giocatore[i].stato == 2) // nel menu principale
+        {
+            char notify[256];
+            printf("[DEBUG] Invio notifica di nuova partita a %s (socket %d)\n", giocatori->giocatore[i].nome, giocatori->giocatore[i].socket);
+
+            // Assicurati che `nomePartita` e `giocatoreAdmin.nome` siano inizializzati
+            if (partita->nomePartita[0] == '\0') {
+                snprintf(partita->nomePartita, sizeof(partita->nomePartita), "Partita_%d", idPartita);
+            }
+
+            snprintf(notify, sizeof(notify), "%s:%s", 
+                     MSG_NEW_GAME_CREATED, partita->giocatoreAdmin.nome);
+            send(giocatori->giocatore[i].socket, notify, strlen(notify), 0);
+        }
+    }
+}
+
 
 
 

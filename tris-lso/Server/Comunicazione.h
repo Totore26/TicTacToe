@@ -32,7 +32,10 @@
 
 #define MSG_NEW_USER_REGISTERED "NEW_USER_REGISTERED" // Notifica nuova registrazione utente
 
-#define MSG_USER_DISCONNECTED "USER_DISCONNECTED"
+#define MSG_USER_DISCONNECTED "USER_DISCONNECTED" //Notifica quando un giocatore si disconnette
+
+#define MSG_NEW_GAME_CREATED "NEW_GAME" //Notifica quando un giocatore crea una nuova partita
+
 
 #define MSG_SERVER_MENU             "MENU"  // per stampare il menu di benvenuto (unisciti, partecipa, esci)
 
