@@ -173,17 +173,7 @@ void *threadLobby(void *arg) {
         send(giocatore->socket, MSG_SERVER_REGISTRATION_OK, strlen(MSG_SERVER_REGISTRATION_OK), 0);
 
         // Notifica tutti i client nel menu principale della nuova registrazione
-        for (int i = 0; i < MAX_CLIENTS; i++) {
-                if (giocatori.giocatore[i].socket != -1 &&
-                    giocatori.giocatore[i].stato == 2 && // nel menu principale
-                    giocatori.giocatore[i].socket != giocatore->socket) // non notificare se stesso
-                {
-                    char notify[128];
-                    printf("[DEBUG] Invio notifica di nuova registrazione a %s (socket %d)\n", giocatori.giocatore[i].nome, giocatori.giocatore[i].socket);
-                    snprintf(notify, sizeof(notify), "%s:%s", MSG_NEW_USER_REGISTERED , giocatore->nome);
-                    send(giocatori.giocatore[i].socket, notify, strlen(notify), 0);
-                }
-            }            
+        notificaNuovaRegistrazione(&giocatori, giocatore);          
             
             
             break;
@@ -589,19 +579,9 @@ void *threadLobby(void *arg) {
     // Chiudo la connessione e libero la memoria
     rimuoviNome(giocatore->nome);
     giocatori.giocatore[giocatore->id].socket = -1; // rimuovo il giocatore dalla lista dei giocatori connessi
-
-    // Notifica tutti i client nel menu principale della disconnessione
-    for (int i = 0; i < MAX_CLIENTS; i++) {
-        if (giocatori.giocatore[i].socket != -1 &&
-            giocatori.giocatore[i].stato == 2 && // nel menu principale
-            giocatori.giocatore[i].socket != giocatore->socket) // non notificare se stesso
-        {
-            char notify[128];
-            printf("[DEBUG] Invio notifica di disconnessione di %s (socket %d)\n", giocatore->nome, giocatori.giocatore[i].socket);
-            snprintf(notify, sizeof(notify), "%s:%s", MSG_USER_DISCONNECTED, giocatore->nome);
-            send(giocatori.giocatore[i].socket, notify, strlen(notify), 0);
-        }
-    }
+    //Notifico a tutti i client che il giocatore si è disconnesso
+    notificaDisconnessione(&giocatori, giocatore);
+    
     close(giocatore->socket);
     free(giocatore);
     pthread_exit(NULL);
