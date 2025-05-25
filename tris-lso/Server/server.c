@@ -183,14 +183,15 @@ void *threadLobby(void *arg) {
     while (1) {
 
 
-        giocatori.giocatore[giocatore->id].stato = 2; // metto lo stato a 2 (nel menu principale)
-
         // invio il messaggio di scelta
         sprintf(buffer, MSG_SERVER_MENU);
         if ( send(giocatore->socket, buffer, strlen(buffer), 0) < 0 ) {
             perror("[Lobby] Errore nell'invio del messaggio di scelta\n");
             break;
         }
+
+        // aspetto che il client mi dice che sta nel menu principale
+        giocatori.giocatore[giocatore->id].stato = 2; // metto lo stato a 2 (nel menu principale)
         
         // Ricevo la scelta del giocatore
         memset(buffer, 0, sizeof(buffer));
@@ -356,8 +357,11 @@ void *threadLobby(void *arg) {
                         continue;
                     } 
                     break; // il vincitore non vuole fare rematch lo porto al menu
-                } 
-                break; // se ha perso va direttamente al menu
+                } else { //ha perso
+                    recv(giocatore->socket, buffer, sizeof(buffer), 0); // attendo che il client riceva il messaggio di fine partita
+                    memset(buffer, 0, sizeof(buffer));
+                }
+                break; // si torna al menu principale
             }
 
         } else if ( strcmp( buffer, MSG_CLIENT_JOIN ) == 0 ) { // il giocatore ha scelto di unirsi a una partita

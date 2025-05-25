@@ -788,6 +788,8 @@ void gioca_partita(const enum tipo_giocatore tipo_giocatore)
             printf("Hai perso!\n");
             attendo_invio();
 
+            send(sd, MSG_CLIENT_REMATCH, strlen("CIaoooo andiamo al menu"), 0);
+
             memset(buffer, 0, MAXLETTORE);
             if (recv(sd, buffer, MAXLETTORE, 0) <= 0)
             {
