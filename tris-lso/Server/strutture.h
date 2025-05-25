@@ -24,7 +24,7 @@
 
 typedef struct {
     int socket;     // socket associato al giocatore    // 'X' o 'O'
-    int stato;      // stato del giocatore (1 se sta scegliendo una partita, 0 altrimenti)
+    int stato;      // stato del giocatore (2 se sta nel menu principale, 1 se sta scegliendo una partita, 0 altrimenti)
     int id;         // id del giocatore assegnato nel vettore di giocatori
     char nome[50];  // nome del giocatore
 } Giocatore;
