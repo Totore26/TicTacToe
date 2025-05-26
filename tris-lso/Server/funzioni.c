@@ -51,59 +51,6 @@ void rimuoviNome(const char *nome) {
     }
 }
 
-// ==========================================================
-// FUNZIONI PER LE NOTIFICHE
-// ==========================================================
-
-
-void notificaNuovaRegistrazione(Giocatori *giocatori, Giocatore *giocatore) {
-    for (int i = 0; i < MAX_CLIENTS; i++) {
-        if (giocatori->giocatore[i].socket != -1 &&
-            giocatori->giocatore[i].stato == 2 && // nel menu principale
-            giocatori->giocatore[i].socket != giocatore->socket) // non notificare se stesso
-        {
-            char notify[128];
-            printf("[DEBUG] Invio notifica di nuova registrazione a %s (socket %d)\n", giocatori->giocatore[i].nome, giocatori->giocatore[i].socket);
-            snprintf(notify, sizeof(notify), "%s:%s", MSG_NEW_USER_REGISTERED, giocatore->nome);
-            send(giocatori->giocatore[i].socket, notify, strlen(notify), 0);
-        }
-    }
-}
-
-void notificaDisconnessione(Giocatori *giocatori, Giocatore *giocatore) {
-    for (int i = 0; i < MAX_CLIENTS; i++) {
-        if (giocatori->giocatore[i].socket != -1 &&
-            giocatori->giocatore[i].stato == 2 && // nel menu principale
-            giocatori->giocatore[i].socket != giocatore->socket) // non notificare se stesso
-        {
-            char notify[128];
-            printf("[DEBUG] Invio notifica di disconnessione di %s (socket %d)\n", giocatore->nome, giocatori->giocatore[i].socket);
-            snprintf(notify, sizeof(notify), "%s:%s", MSG_USER_DISCONNECTED, giocatore->nome);
-            send(giocatori->giocatore[i].socket, notify, strlen(notify), 0);
-        }
-    }
-}
-
-void notificaNuovaPartita(Giocatori *giocatori, Partita *partita, int idPartita) {
-    for (int i = 0; i < MAX_CLIENTS; i++) {
-        if (giocatori->giocatore[i].socket != -1 &&
-            giocatori->giocatore[i].stato == 2) // nel menu principale
-        {
-            char notify[256];
-            printf("[DEBUG] Invio notifica di nuova partita a %s (socket %d)\n", giocatori->giocatore[i].nome, giocatori->giocatore[i].socket);
-
-            // Assicurati che `nomePartita` e `giocatoreAdmin.nome` siano inizializzati
-            if (partita->nomePartita[0] == '\0') {
-                snprintf(partita->nomePartita, sizeof(partita->nomePartita), "Partita_%d", idPartita);
-            }
-
-            snprintf(notify, sizeof(notify), "%s:%s", 
-                     MSG_NEW_GAME_CREATED, partita->giocatoreAdmin.nome);
-            send(giocatori->giocatore[i].socket, notify, strlen(notify), 0);
-        }
-    }
-}
-
 
 
 
@@ -308,8 +255,6 @@ Partita *creaPartita(Giocatore *giocatore) {
     lobby.partita[nuovoId] = *partita;
     pthread_mutex_unlock(&lobby.lobbyMutex);
 
-    // Notifica a tutti i client nel menu principale della nuova partita
-    notificaNuovaPartita(&giocatori, partita, nuovoId);
     // invio il messaggio di attesa al giocatore admin
     sprintf(buffer, MSG_WAITING_PLAYER);
     if ( send(giocatore->socket, buffer, strlen(buffer), 0) < 0 ) {

@@ -1,9 +1,6 @@
 #include "funzioni.h"
 #include "strutture.h"
-#define MAX_NOTIFICHE 5 // Numero massimo di notifiche da mostrare
-#define MAX_LUNGHEZZA_NOTIFICA 30 // Lunghezza massima per ogni notifica
-char notifiche[MAX_NOTIFICHE][128]; // Array per memorizzare le notifiche
-int indiceNotifica = 0; // Indice per la prossima notifica
+
 // ==========================================================
 //  FUNZIONE PER CONNESSIONE CON IL SERVER
 // ==========================================================
@@ -66,61 +63,15 @@ void attendo_invio()
         ; // blocca fino a Invio
 }
 
-void aggiungi_notifica(const char *messaggio) {
-    snprintf(notifiche[indiceNotifica], sizeof(notifiche[indiceNotifica]), "%s", messaggio);
-    indiceNotifica = (indiceNotifica + 1) % MAX_NOTIFICHE; // Incrementa l'indice in modo circolare
-}
-
-void gestisci_notifica_server(const char *buffer) {
-    char messaggio[128];
-
-    if (strncmp(buffer, MSG_NEW_USER_REGISTERED, strlen(MSG_NEW_USER_REGISTERED)) == 0) {
-        char *nome = strchr(buffer, ':');
-        if (nome) nome++;
-        else nome = "Un nuovo utente";
-        snprintf(messaggio, sizeof(messaggio), "🔔 Nuovo utente registrato: %s", nome);
-        aggiungi_notifica(messaggio);
-    } 
-    else if (strncmp(buffer, MSG_USER_DISCONNECTED, strlen(MSG_USER_DISCONNECTED)) == 0) {
-        char *nome = strchr(buffer, ':');
-        if (nome) nome++;
-        else nome = "Un utente";
-        snprintf(messaggio, sizeof(messaggio), "🚪 Utente disconnesso: %s", nome);
-        aggiungi_notifica(messaggio);
-    } 
-    else if (strncmp(buffer, MSG_NEW_GAME_CREATED, strlen(MSG_NEW_GAME_CREATED)) == 0) {
-        char *nomeAdmin = strchr(buffer, ':');
-        if (nomeAdmin) nomeAdmin++;
-        else nomeAdmin = "Sconosciuto";
-        snprintf(messaggio, sizeof(messaggio), "🎮 Nuova partita creata da %s", nomeAdmin);
-        aggiungi_notifica(messaggio);
-    }
-    else if (strcmp(buffer, MSG_SERVER_MENU) == 0) {
-        return;
-    }
-
-    printf(" Scegli un'opzione-> ");
-    fflush(stdout);
-}
-
-void funzione_menu() {
+void funzione_menu()
+{
     char input[MAXSCRITTORE];
     char buffer[MAXLETTORE];
-    CLEAR_SCREEN();
 
-    while (1) {
+    while (1)
+    {
+
         CLEAR_SCREEN();
-
-        // Stampa le notifiche come elenco semplice
-        printf("\nNOTIFICHE RECENTI:\n");
-        for (int i = 0; i < MAX_NOTIFICHE; i++) {
-            int index = (indiceNotifica + i) % MAX_NOTIFICHE;
-            if (strlen(notifiche[index]) > 0) {
-                printf("- %s\n", notifiche[index]);
-            }
-        }
-        printf("\n");
-        // Stampa il menu principale
         printf("\n");
         printf("╔════════════════════════════════╗\n");
         printf("║        MENU PRINCIPALE         ║\n");
@@ -132,60 +83,46 @@ void funzione_menu() {
         printf(" Scegli un'opzione-> ");
 
 
-        fflush(stdout);
 
-        // Usa select per ascoltare sia stdin che il socket
-        fd_set readfds;
-        FD_ZERO(&readfds);
-        FD_SET(STDIN_FILENO, &readfds);
-        FD_SET(sd, &readfds);
-        int maxfd = sd > STDIN_FILENO ? sd : STDIN_FILENO;
-
-        int ready = select(maxfd + 1, &readfds, NULL, NULL, NULL);
-        if (ready < 0) {
-            perror("select error");
+        memset(input, 0, MAXSCRITTORE);
+        if (fgets(input, MAXSCRITTORE, stdin) == NULL)
+        {
             continue;
         }
+        
 
-        // Notifica dal server
-        if (FD_ISSET(sd, &readfds)) {
-            memset(buffer, 0, MAXLETTORE);
-            ssize_t n = recv(sd, buffer, MAXLETTORE, 0);
-            if (n <= 0) {
-                printf("Connessione al server persa.\n");
-                exit(EXIT_FAILURE);
-            }
-            gestisci_notifica_server(buffer);
-            continue;
+        // Rimuove il newline
+        input[strcspn(input, "\n")] = 0;
+
+        if (strcmp(input, "1") == 0)
+        {
+            // Invia richiesta di creazione partita
+            send(sd, MSG_CLIENT_CREAATE, strlen(MSG_CLIENT_CREAATE), 0);
+            funzione_crea_partita();
+            break;
         }
-
-        // Input utente
-        if (FD_ISSET(STDIN_FILENO, &readfds)) {
-            memset(input, 0, MAXSCRITTORE);
-            if (fgets(input, MAXSCRITTORE, stdin) == NULL) {
-                continue;
-            }
-            input[strcspn(input, "\n")] = 0;
-
-            if (strcmp(input, "1") == 0) {
-                send(sd, MSG_CLIENT_CREAATE, strlen(MSG_CLIENT_CREAATE), 0);
-                funzione_crea_partita();
-                break;
-            } else if (strcmp(input, "2") == 0) {
-                send(sd, MSG_CLIENT_JOIN, strlen(MSG_CLIENT_JOIN), 0);
-                funzione_entra_partita();
-                break;
-            } else if (strcmp(input, "3") == 0) {
-                send(sd, MSG_CLIENT_QUIT, strlen(MSG_CLIENT_QUIT), 0);
-                close(sd);
-                exit(EXIT_SUCCESS);
-            } else {
-                printf("Scelta non valida. Riprova...\n");
-                usleep(800000);
-            }
+        else if (strcmp(input, "2") == 0)
+        {
+            // Invia richiesta di unione a partita
+            send(sd, MSG_CLIENT_JOIN, strlen(MSG_CLIENT_JOIN), 0);
+            funzione_entra_partita();
+            break;
+        }
+        else if (strcmp(input, "3") == 0)
+        {
+            // Invia richiesta di uscita
+            send(sd, MSG_CLIENT_QUIT, strlen(MSG_CLIENT_QUIT), 0);
+            close(sd);
+            exit(EXIT_SUCCESS);
+        }
+        else
+        {
+            printf("Scelta non valida. Riprova...\n");
+            usleep(800000);
         }
     }
 }
+
 // ==========================================================
 //  FUNZIONE PER GESTIRE LA CREAZIONE DELLA PARTITA
 // ==========================================================
@@ -787,8 +724,6 @@ void gioca_partita(const enum tipo_giocatore tipo_giocatore)
             // Mostra il messaggio ricevuto
             printf("Hai perso!\n");
             attendo_invio();
-
-            send(sd, MSG_CLIENT_REMATCH, strlen("CIaoooo andiamo al menu"), 0);
 
             memset(buffer, 0, MAXLETTORE);
             if (recv(sd, buffer, MAXLETTORE, 0) <= 0)
